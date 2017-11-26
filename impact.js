@@ -3,6 +3,20 @@
 // a Three.js camera with the camera controls from homework 3.
 //
 
+var height = 2;
+var width = 3;
+var depth = .1;
+width = 0.5 * width;
+height = 0.5 * height;
+
+var ourCanvas;
+
+var fragCount = 0;
+var gridSize = 0.025;
+
+var impactPoint;
+var impactForce = 10;
+
 var axis = 'z';
 var paused = true;
 var camera;
@@ -24,7 +38,6 @@ function handleKeyPress(event)
 {
   var ch = getChar(event);
   if (cameraControl(camera, ch)){
-    console.log('camera');
     return;
   } 
   
@@ -32,7 +45,6 @@ function handleKeyPress(event)
   {
   case ' ':
     paused = !paused;
-    console.log(paused);
     break;
   case 'x':
     axis = 'x';
@@ -48,33 +60,77 @@ function handleKeyPress(event)
   }
 }
 
+
+function onDocumentMouseMove( event ) {
+  var vector = new THREE.Vector3();
+  
+  // vector.set(
+  //     ( event.clientX / window.innerWidth ) * 2 - 1,
+  //     - ( event.clientY / window.innerHeight ) * 2 + 1,
+  //     0.5 );
+//console.log(event.clientX, window.innerWidth);
+
+var X = event.pageX - ourCanvas.offsetLeft 
+var Y = event.pageY - ourCanvas.offsetTop
+
+vector.set(
+  ( X / 600 ) * 2 - 1,
+  - ( Y / 400 ) * 2 + 1,
+  0.5 );
+console.log(X, Y);
+      
+  
+  vector.unproject( camera );
+  
+  var dir = vector.sub( camera.position ).normalize();
+  
+  var distance = - camera.position.z / dir.z;
+  
+  var pos = camera.position.clone().add( dir.multiplyScalar( distance ) );
+
+  impactPoint.position.x = pos.x;
+  impactPoint.position.y = pos.y;
+
+}
+
 function start()
 {
   window.onkeypress = handleKeyPress;
+  document.addEventListener( 'mousemove', onDocumentMouseMove, false );
 
   var scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera( 30, 1.5, 0.1, 1000 );
   camera.position.set(1, 2.5, 5);
   camera.lookAt(new THREE.Vector3(0, 0, 0));
   
-  var ourCanvas = document.getElementById('theCanvas');
+  ourCanvas = document.getElementById('theCanvas');
   var renderer = new THREE.WebGLRenderer({canvas: ourCanvas});
 
   // Choose a geometry
-  //var geometry = new THREE.PlaneGeometry(1, 1, 1);
-  var geometry = new THREE.BoxGeometry( 3, 2, .2 );
+  //var geometry = new THREE.PlaneGeometry(3, 2);
+  //var geometry = new THREE.BoxGeometry( 3, 2, .2 );
   //var geometry = new THREE.SphereGeometry(1);
   
   // Choose a material
   //var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
   //var material = new THREE.MeshLambertMaterial( { color: 0x00ff00 } );
-  var material = new THREE.MeshPhongMaterial( { color: 0x00ff00, specular: 0x222222, shininess: 1000, /*shading: THREE.FlatShading*/ } );
 
-  // Create a mesh
-  var cube = new THREE.Mesh( geometry, material );
+  // THREE.BackSide
+  // THREE.DoubleSide
+  var material = new THREE.MeshPhongMaterial( { color: 0x00ff00, specular: 0x222222, shininess: 1000, side: THREE.DoubleSide /*shading: THREE.FlatShading*/ } );
+
+
+  var shape = new THREE.Shape();
+  shape.moveTo(-width, -height);
+  shape.lineTo(width, -height);
+  shape.lineTo(width, height);
+  shape.lineTo(-width, height);
   
-  // Add it to the scene
-  scene.add( cube );
+  
+  
+  var mesh = new THREE.Mesh( new THREE.ShapeGeometry(shape), material );
+
+  scene.add(mesh);
   
   // Make some axes
   var material = new THREE.LineBasicMaterial({color: 0xff0000});
@@ -103,6 +159,15 @@ function start()
   );
   line = new THREE.Line( geometry, material );
   scene.add( line );
+
+  material = new THREE.LineBasicMaterial({color: 0xffffff});
+  geometry = new THREE.Geometry();
+  geometry.vertices.push(
+    new THREE.Vector3( 0, 0, 2 ),
+    new THREE.Vector3( 0, 0, -2 )
+  );
+  impactPoint = new THREE.Line( geometry, material );
+  scene.add( impactPoint );
 
   // Put a point light in the scene
   var light = new THREE.PointLight(0xffffff, 1.0);
