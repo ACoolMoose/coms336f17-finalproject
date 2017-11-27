@@ -1,7 +1,4 @@
-//
-// The spinning cube example with Phong shading in Three.js, using
-// a Three.js camera with the camera controls from homework 3.
-//
+
 
 var height = 2;
 var width = 3;
@@ -11,18 +8,38 @@ height = 0.5 * height;
 
 var ourCanvas;
 
-var fragCount = 0;
-var gridSize = 0.025;
-
 var impactPoint;
-var impactForce = 10;
+var impactForce = 100;
+var crackCountRange = 10;
+var materialStrength = 100;
 
 var axis = 'z';
 var paused = true;
 var camera;
 
-//translate keypress events to strings
-//from http://javascript.info/tutorial/keyboard-events
+function onDocumentMouseClick(event){
+  var inWidth = impactPoint.position.x > -width && impactPoint.position.x < width;
+  var inHeight = impactPoint.position.y > -height && impactPoint.position.y < height;
+
+  var shatterPercent = 0.0;
+  
+  if(inWidth && inHeight){
+    // Shatter whole thing
+    if(impactForce >= materialStrength){
+      shatterPercent = 1.0;
+    }else{
+      shatterPercent = Math.floor(Math.random() * (materialStrength - impactForce));
+    }
+
+    // cracking after shatter portion
+    var crackCount = Math.floor(Math.random() * crackCountRange);
+
+    // todo
+    
+  }
+}
+
+
 function getChar(event) {
 if (event.which == null) {
  return String.fromCharCode(event.keyCode) // IE
@@ -63,29 +80,22 @@ function handleKeyPress(event)
 
 function onDocumentMouseMove( event ) {
   var vector = new THREE.Vector3();
-  
-  // vector.set(
-  //     ( event.clientX / window.innerWidth ) * 2 - 1,
-  //     - ( event.clientY / window.innerHeight ) * 2 + 1,
-  //     0.5 );
-//console.log(event.clientX, window.innerWidth);
 
-var X = event.pageX - ourCanvas.offsetLeft 
-var Y = event.pageY - ourCanvas.offsetTop
 
-vector.set(
-  ( X / 600 ) * 2 - 1,
-  - ( Y / 400 ) * 2 + 1,
-  0.5 );
-console.log(X, Y);
+  var X = event.pageX - ourCanvas.offsetLeft 
+  var Y = event.pageY - ourCanvas.offsetTop
+
+  vector.set(
+    ( X / 600 ) * 2 - 1,
+    - ( Y / 400 ) * 2 + 1,
+    0.5 );
       
-  
   vector.unproject( camera );
-  
+
   var dir = vector.sub( camera.position ).normalize();
-  
+
   var distance = - camera.position.z / dir.z;
-  
+
   var pos = camera.position.clone().add( dir.multiplyScalar( distance ) );
 
   impactPoint.position.x = pos.x;
@@ -97,6 +107,7 @@ function start()
 {
   window.onkeypress = handleKeyPress;
   document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+  document.addEventListener("click", onDocumentMouseClick);
 
   var scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera( 30, 1.5, 0.1, 1000 );
@@ -105,15 +116,6 @@ function start()
   
   ourCanvas = document.getElementById('theCanvas');
   var renderer = new THREE.WebGLRenderer({canvas: ourCanvas});
-
-  // Choose a geometry
-  //var geometry = new THREE.PlaneGeometry(3, 2);
-  //var geometry = new THREE.BoxGeometry( 3, 2, .2 );
-  //var geometry = new THREE.SphereGeometry(1);
-  
-  // Choose a material
-  //var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
-  //var material = new THREE.MeshLambertMaterial( { color: 0x00ff00 } );
 
   // THREE.BackSide
   // THREE.DoubleSide
@@ -177,24 +179,12 @@ function start()
   // Put in an ambient light
   light = new THREE.AmbientLight(0x555555);
   scene.add(light);
-
-  // (**) If cube is not centered at origin, notice that 2nd and 3rd rotation
-  // examples do the rotation extrinsically
-  //cube.position.set(0.5, 0, 0);
   
   var render = function () {
     renderer.render(scene, camera);
     var increment = 1.0 * Math.PI / 180.0;  // convert to radians
     if (!paused)
     {
-      
-      // Note about rotations: it is tempting to use cube.rotation.x += increment
-      // here.  But that won't give the behavior we expect, because threejs uses
-      // the 'rotation' attribute as a set of Euler angles, applied in a specific
-      // order. See EulerThreejs.js.
-      // 
-      // In most applications you would use methods for "intrinsic" rotations,
-      // rotateX(), rotateY(), and rotateZ(), rotateOnAxis().
       switch(axis)
       {
       case 'x':
@@ -208,65 +198,9 @@ function start()
         break;
       default:
       }
-
-        // If you want to do an extrinsic rotation (similar to previous
-    	    // rotating cube example), you have to update the 
-        // rotation of the object, but not the combined TRS matrix.
-        // Again, you can't just alter the 'rotation.xyz' attributes,
-        // because those are Euler angles.  Internally, the rotation
-        // is stored as a quaternion, and we can left-multiply it by 
-        // another quaternion to get an extrinsic rotation.
-//        var q;
-//        switch(axis)
-//        {
-//        case 'x':
-//          // create a quaternion representing a rotation about x axis
-//          q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0),  increment);       
-//          break;
-//        case 'y':
-//          q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0),  increment);
-//          break;
-//        case 'z':
-//          q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1),  increment);
-//          break;       
-//        default:
-//        }
-//        // left-multiply the cube's quaternion, and then set the new value
-//        cube.setRotationFromQuaternion(q.multiply(cube.quaternion))
-  //  
-    	
-      //
-      // It is also possible to left-multiply the entire TRS matrix
-    	  // for the object, but this is not often what you want, because
-    	  // it will rotate the object relative to the world origin
-    	  // *after* translating it.  Try setting the cube's position
-    	  // in the line marked (**) above, and then perform this rotation.
-      // The applyMatrix performs a left-multiplication of the object's
-      // complete translation * rotation * scale by the given matrix,
-      // and then updates the translation, rotation, and scale from it.
-      // However, a warning: if you alter the object by setting some 
-      // other attribute such as the position, you have to call updateMatrix()
-      // before calling applyMatrix.  Otherwise it will just perform a multiplication
-      // of the current matrix without taking the position into account.
-//      switch(axis)
-//      {
-//      case 'x':
-//        cube.applyMatrix(new THREE.Matrix4().makeRotationX(increment));
-//        break;
-//      case 'y':
-//        cube.applyMatrix(new THREE.Matrix4().makeRotationY(increment));  
-//        break;
-//      case 'z':
-//        cube.applyMatrix(new THREE.Matrix4().makeRotationZ(increment));    
-//        break;
-//      default:
-//      }   
-     
-      
     }
     requestAnimationFrame( render );
   };
 
   render();
-
 }
