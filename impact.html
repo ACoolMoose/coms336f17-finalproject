@@ -1,36 +1,48 @@
 <html>
-	<head>
-		<title>Rotating Cube with Three.js app</title>
-	</head>
-	<body>
-	
-		<canvas id="theCanvas" width="600" height="400">
-    Please use a browser that supports "canvas"
-    </canvas>
+    <head>
+        <title>Variable Cracking</title>
+    </head>
+    <body>
+        <canvas id="theCanvas" width="600" height="400">
+            Please use a browser that supports "canvas"
+        </canvas>
 
-	<p>
-	Keyboard controls:
-	<ul style="list-style:none;">
-	<li>SPACE - pause rotation
-	<li>x - rotate about x axis
-	<li>y - rotate about y axis
-	<li>z - rotate about z axis
-<li><strong>Camera controls:</strong>
-		<li>w, a, s, d - move forward, left, back, right
-		<li>r, f - move up, down
-		<li>i, j, k, l - look up, left, down, right
-		<li>I, J, K, L - orbit down, right, up, left
-		<li>O - face origin
-		<li>p - put camera at origin
-		<li>W - decrease fov
-		<li>S - increase fov
-	</ul>
-	
-	<script src="http://threejs.org/build/three.min.js"></script>
-		<!--script src="../threejs/three.js"></script-->
+        <p>
+            Keyboard controls:
+        <ul style="list-style:none;">
+            <li><strong>Camera controls:</strong>
+            <li>w, a, s, d - move forward, left, back, right
+            <li>r, f - move up, down
+            <li>i, j, k, l - look up, left, down, right
+            <li>I, J, K, L - orbit down, right, up, left
+            <li>O - face origin
+            <li>p - put camera at origin
+            <li>W - decrease fov
+            <li>S - increase fov
+        </ul>
+        <ul style="list-style:none;">
+            <li><strong>Impact Controls:</strong>
+            <li>z, Z - decrease/increase impact force
+            <li>x, X - decrease/increase material strength
+            <li>c, C - decrease/increase crack range
+        </ul>
 
-		<script src="CameraControl.js"></script>		
-		<script src="impact.js"></script>
-		<script>window.onload = start</script>
-	</body>
+        <div id="impactVars" style="">
+            <div style="width: 150px;">
+                Impact Force: <span id="impactForce"></span>
+            </div>
+            <div style="width: 150px;">
+                Material Strength: <span id="materialStrength"></span>
+            </div>
+            <div style="width: 150px;">
+                Crack Range: <span id="crackRange"></span>
+            </div>
+        </div>
+
+        <script src="http://threejs.org/build/three.min.js"></script>
+
+        <script src="CameraControl.js"></script>
+        <script src="impact.js"></script>
+        <script>window.onload = start</script>
+    </body>
 </html>
