@@ -8,8 +8,8 @@ var ourCanvas;
 
 var impactPoint;
 var impactForce = 100;
-var crackCountRange = 10;
 var materialStrength = 100;
+var crackCountRange = 10;
 
 var camera;
 
@@ -76,6 +76,14 @@ function handleKeyPress(event) {
             return;
         case 'C':
             crackCountRange += 1;
+            document.getElementById("crackRange").innerHTML = crackCountRange.toString();
+            return;
+        case 'v':
+            impactForce = 100;
+            materialStrength = 100;
+            crackCountRange = 10;
+            document.getElementById("impactForce").innerHTML = impactForce.toString();
+            document.getElementById("materialStrength").innerHTML = materialStrength.toString();
             document.getElementById("crackRange").innerHTML = crackCountRange.toString();
             return;
         default:
