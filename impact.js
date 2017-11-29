@@ -5,11 +5,17 @@ width = 0.5 * width;
 height = 0.5 * height;
 
 var ourCanvas;
+var scene;
+var solidShape;
 
 var impactPoint;
 var impactForce = 100;
 var materialStrength = 100;
 var crackCountRange = 10;
+var shatterLayerRange = 10;
+var shatterShardCountMin = 5;
+var shatterShardCountMax = 10;
+var shardWidthMin = 5;
 
 var camera;
 
@@ -24,17 +30,74 @@ function onDocumentMouseClick(event) {
         if (impactForce >= materialStrength) {
             shatterPercent = 1.0;
         } else {
-            shatterPercent = Math.floor(Math.random() * (materialStrength - impactForce));
+            shatterPercent = (Math.random() * (1 - (materialStrength - impactForce)/100.0)).toFixed(4);
         }
 
         // cracking after shatter portion
         var crackCount = Math.floor(Math.random() * crackCountRange);
 
-        // todo
+        var shatterDistance = height > width ? height * shatterPercent : width * shatterPercent;
 
+        var shatterLayerCount = Math.floor(Math.random() * shatterLayerRange) + 1;
+        console.log("Shatter Layers: " + shatterLayerCount);
+        var shatterLayerDistance = shatterDistance / shatterLayerCount;
+
+        var shatterLayers = [];
+
+        var startPoint = {'x': impactPoint.position.x, 'y': impactPoint.position.y};
+
+        for(var i = 0; i < shatterLayerCount; ++i){
+          console.log("Shatter Layer " + i);
+          var shatterShardCount = Math.floor((Math.random() * (shatterShardCountMax-shatterShardCountMin)) + shatterShardCountMin);
+          var remainingSpace = 360;
+          var lastWidth = 0;
+          var shardWidthRunningCount = 0;
+          var layer = []
+          layer.push(startPoint);
+          var first_x = startPoint['x'] + (Math.random() * shatterLayerDistance);
+          layer.push({'x': first_x > width ? width : first_x, 'y': startPoint['y']});
+
+          for(var sc = 1; sc < shatterShardCount; ++ sc){
+            console.log("Shard " + sc);
+
+            // if last shard, take all remaining space
+            var shardWidth = remainingSpace/(shatterShardCount - sc);
+            if(sc < shatterShardCount - 1){
+              shardWidth = Math.floor(shardWidth + (Math.random() * (Math.random() > .5 ? shardWidth : - shardWidth)));
+              remainingSpace -= shardWidth;
+            }
+            console.log(shardWidth);
+            var absolutWidth = shardWidth + lastWidth;
+
+            var shardLen = (Math.random() * shatterLayerDistance);
+            var riseAmnt = shardLen * Math.sin(toRadians(absolutWidth));
+            var slideAmnt = shardLen * Math.cos(toRadians(absolutWidth));
+
+            //Add point to layer
+            var new_x = startPoint['x'] + slideAmnt;
+            var new_y = startPoint['y'] + riseAmnt;
+            new_x = new_x > width ? width : new_x < -width ? -width : new_x;
+            new_y = new_y > height ? height : new_y < -height ? -height : new_y;
+            layer.push({'x': new_x, 'y': new_y});
+            
+            
+            
+
+
+            shardWidthRunningCount += shardWidth;
+            lastWidth = lastWidth + shardWidth;
+          }
+          console.log("Shard Combined: " + shardWidthRunningCount);
+          console.log(layer);
+          shatterLayers.push(layer);
+        }
+        
     }
 }
 
+function toRadians (angle) {
+  return angle * (Math.PI / 180);
+}
 
 function getChar(event) {
     if (event.which === null) {
@@ -129,7 +192,7 @@ function start() {
     document.addEventListener('mousemove', onDocumentMouseMove, false);
     document.addEventListener("click", onDocumentMouseClick);
 
-    var scene = new THREE.Scene();
+    scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(30, 1.5, 0.1, 1000);
     camera.position.set(1, 2.5, 5);
     camera.lookAt(new THREE.Vector3(0, 0, 0));
@@ -154,9 +217,9 @@ function start() {
     shape.lineTo(-width, height);
 
 
-    var mesh = new THREE.Mesh(new THREE.ShapeGeometry(shape), material);
+    solidShape = new THREE.Mesh(new THREE.ShapeGeometry(shape), material);
 
-    scene.add(mesh);
+    scene.add(solidShape);
 
     // Make some axes
     material = new THREE.LineBasicMaterial({color: 0xff0000});
