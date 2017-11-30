@@ -1,44 +1,96 @@
 <html>
     <head>
+        <link rel="stylesheet" href="styles.css">
         <title>Variable Cracking</title>
     </head>
     <body>
         <canvas id="theCanvas" width="600" height="400">
             Please use a browser that supports "canvas"
         </canvas>
+        <br>
+        <br>
+        <div id="instructions">
+            <strong>Camera controls:</strong>
+            <br>
+            <br>
+            <div>w, a, s, d - move forward, left, back, right</div>
+            <div>r, f - move up, down</div>
+            <div>i, j, k, l - look up, left, down, right</div>
+            <div>I, J, K, L - orbit down, right, up, left</div>
+            <div>O - face origin</div>
+            <div>p - put camera at origin</div>
+            <div>W - decrease fov</div>
+            <div>S - increase fov</div>
+            <br>
 
-        <p>
-            Keyboard controls:
-        <ul style="list-style:none;">
-            <li><strong>Camera controls:</strong>
-            <li>w, a, s, d - move forward, left, back, right
-            <li>r, f - move up, down
-            <li>i, j, k, l - look up, left, down, right
-            <li>I, J, K, L - orbit down, right, up, left
-            <li>O - face origin
-            <li>p - put camera at origin
-            <li>W - decrease fov
-            <li>S - increase fov
-        </ul>
-        <ul style="list-style:none;">
-            <li><strong>Impact Controls:</strong>
-            <li>z, Z - decrease/increase impact force
-            <li>x, X - decrease/increase material strength
-            <li>c, C - decrease/increase crack range
-            <li>v - reset values
-        </ul>
-
-        <div id="impactVars" style="">
-            <div style="width: 150px;">
-                Impact Force: <span id="impactForce"></span>
-            </div>
-            <div style="width: 150px;">
-                Material Strength: <span id="materialStrength"></span>
-            </div>
-            <div style="width: 150px;">
-                Crack Range: <span id="crackRange"></span>
+            <strong>Impact Controls:</strong>
+            <br>
+            <br>
+            <div id="impactVars">
+                <div id="impactForceSlider">
+                    <label for="impactForceRange">Impact Force: <span id="impactForceVal"></span></label>
+                    <input type="range" min="1" max="200" value="100" class="slider" id="impactForceRange">
+                </div>
+                <br>
+                <div id="materialStrengthSlider">
+                    <label for="materialStrengthRange"> Material Strength: <span id="materialStrengthVal"></span></label>
+                    <input type="range" min="1" max="200" value="100" class="slider" id="materialStrengthRange">
+                </div>
+                <br>
+                <div id="crackRangeSlider">
+                    <label for="crackRangeRange">Crack Range: <span id="crackRangeVal"></span></label>
+                    <input type="range" min="1" max="20" value="10" class="slider" id="crackRangeRange">
+                </div>
+                <br>
+                <div>
+                    <input type="button" id="resetImpactVars" value="Reset Impact Vars">
+                </div>
             </div>
         </div>
+
+        <script>
+            //
+            // Update slider values
+            //
+            var impactForceSlider = document.getElementById("impactForceRange");
+            var impactForceOutput = document.getElementById("impactForceVal");
+            impactForceOutput.innerHTML = impactForceSlider.value; // Display the default slider value
+
+            // Update the current slider value (each time you drag the slider handle)
+            impactForceSlider.oninput = function() {
+                impactForceOutput.innerHTML = this.value;
+            };
+
+            var materialStrengthSlider = document.getElementById("materialStrengthRange");
+            var materialStrengthOutput = document.getElementById("materialStrengthVal");
+            materialStrengthOutput.innerHTML = materialStrengthSlider.value; // Display the default slider value
+
+            materialStrengthSlider.oninput = function() {
+                materialStrengthOutput.innerHTML = this.value;
+            };
+
+            var crackRangeSlider = document.getElementById("crackRangeRange");
+            var crackRangeOutput = document.getElementById("crackRangeVal");
+            crackRangeOutput.innerHTML = crackRangeSlider.value; // Display the default slider value
+
+            crackRangeSlider.oninput = function() {
+                crackRangeOutput.innerHTML = this.value;
+            };
+
+            // Reset values
+            var resetButton = document.getElementById("resetImpactVars");
+
+            resetButton.onclick = function() {
+                impactForceSlider.value = 100;
+                impactForceOutput.innerHTML = "100";
+
+                materialStrengthSlider.value = 100;
+                materialStrengthOutput.innerHTML = "100";
+
+                crackRangeSlider.value = 10;
+                crackRangeOutput.innerHTML = "10";
+            };
+        </script>
 
         <script src="http://threejs.org/build/three.min.js"></script>
 

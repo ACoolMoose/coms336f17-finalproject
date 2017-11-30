@@ -9,9 +9,6 @@ var scene;
 var solidShape;
 
 var impactPoint;
-var impactForce = 100;
-var materialStrength = 100;
-var crackCountRange = 10;
 var shatterLayerRange = 10;
 var shatterShardCountMin = 5;
 var shatterShardCountMax = 10;
@@ -20,6 +17,12 @@ var shardWidthMin = 5;
 var camera;
 
 function onDocumentMouseClick(event) {
+
+    // Get values
+    var impactForce = parseInt(document.getElementById("impactForceVal").innerHTML);
+    var materialStrength = parseInt(document.getElementById("materialStrengthVal").innerHTML);
+    var crackCountRange = parseInt(document.getElementById("crackRangeVal").innerHTML);
+
     var inWidth = impactPoint.position.x > -width && impactPoint.position.x < width;
     var inHeight = impactPoint.position.y > -height && impactPoint.position.y < height;
 
@@ -99,65 +102,67 @@ function toRadians (angle) {
   return angle * (Math.PI / 180);
 }
 
-function getChar(event) {
-    if (event.which === null) {
-        return String.fromCharCode(event.keyCode) // IE
-    } else if (event.which !== 0 && event.charCode !== 0) {
-        return String.fromCharCode(event.which)   // the rest
-    } else {
-        return null // special key
-    }
-}
+/*
+ *  Using sliders now
+ */
 
-
-function handleKeyPress(event) {
-    var ch = getChar(event);
-    if (cameraControl(camera, ch)) {
-        return;
-    }
-
-    switch (ch) {
-        case 'z':
-            impactForce -= 1;
-            document.getElementById("impactForce").innerHTML = impactForce.toString();
-            return;
-        case 'Z':
-            impactForce += 1;
-            document.getElementById("impactForce").innerHTML = impactForce.toString();
-            return;
-        case 'x':
-            materialStrength -= 1;
-            document.getElementById("materialStrength").innerHTML = materialStrength.toString();
-            return;
-        case 'X':
-            materialStrength += 1;
-            document.getElementById("materialStrength").innerHTML = materialStrength.toString();
-            return;
-        case 'c':
-            crackCountRange -= 1;
-            document.getElementById("crackRange").innerHTML = crackCountRange.toString();
-            return;
-        case 'C':
-            crackCountRange += 1;
-            document.getElementById("crackRange").innerHTML = crackCountRange.toString();
-            return;
-        case 'v':
-            impactForce = 100;
-            materialStrength = 100;
-            crackCountRange = 10;
-            document.getElementById("impactForce").innerHTML = impactForce.toString();
-            document.getElementById("materialStrength").innerHTML = materialStrength.toString();
-            document.getElementById("crackRange").innerHTML = crackCountRange.toString();
-            return;
-        default:
-            return;
-    }
-}
+// function getChar(event) {
+//     if (event.which === null) {
+//         return String.fromCharCode(event.keyCode) // IE
+//     } else if (event.which !== 0 && event.charCode !== 0) {
+//         return String.fromCharCode(event.which)   // the rest
+//     } else {
+//         return null // special key
+//     }
+// }
+//
+// function handleKeyPress(event) {
+//     var ch = getChar(event);
+//     if (cameraControl(camera, ch)) {
+//         return;
+//     }
+//
+//     switch (ch) {
+//         case 'z':
+//             impactForce -= 1;
+//             document.getElementById("impactForce").innerHTML = impactForce.toString();
+//             return;
+//         case 'Z':
+//             impactForce += 1;
+//             document.getElementById("impactForce").innerHTML = impactForce.toString();
+//             return;
+//         case 'x':
+//             materialStrength -= 1;
+//             document.getElementById("materialStrength").innerHTML = materialStrength.toString();
+//             return;
+//         case 'X':
+//             materialStrength += 1;
+//             document.getElementById("materialStrength").innerHTML = materialStrength.toString();
+//             return;
+//         case 'c':
+//             crackCountRange -= 1;
+//             document.getElementById("crackRange").innerHTML = crackCountRange.toString();
+//             return;
+//         case 'C':
+//             crackCountRange += 1;
+//             document.getElementById("crackRange").innerHTML = crackCountRange.toString();
+//             return;
+//         case 'v':
+//             impactForce = 100;
+//             materialStrength = 100;
+//             crackCountRange = 10;
+//             document.getElementById("impactForce").innerHTML = impactForce.toString();
+//             document.getElementById("materialStrength").innerHTML = materialStrength.toString();
+//             document.getElementById("crackRange").innerHTML = crackCountRange.toString();
+//             return;
+//         default:
+//             return;
+//     }
+// }
 
 
 function onDocumentMouseMove(event) {
     var vector = new THREE.Vector3();
-
 
     var X = event.pageX - ourCanvas.offsetLeft;
     var Y = event.pageY - ourCanvas.offsetTop;
@@ -183,12 +188,12 @@ function onDocumentMouseMove(event) {
 function start() {
 
     // Handle default vars
-    document.getElementById("impactForce").innerHTML = impactForce.toString();
-    document.getElementById("materialStrength").innerHTML = materialStrength.toString();
-    document.getElementById("crackRange").innerHTML = crackCountRange.toString();
+    // document.getElementById("impactForce").innerHTML = impactForce.toString();
+    // document.getElementById("materialStrength").innerHTML = materialStrength.toString();
+    // document.getElementById("crackRange").innerHTML = crackCountRange.toString();
 
 
-    window.onkeypress = handleKeyPress;
+    //window.onkeypress = handleKeyPress;
     document.addEventListener('mousemove', onDocumentMouseMove, false);
     document.addEventListener("click", onDocumentMouseClick);
 
