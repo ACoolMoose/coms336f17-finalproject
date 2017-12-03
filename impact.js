@@ -87,11 +87,23 @@ function onDocumentMouseClick(event) {
             shardWidthRunningCount += shardWidth;
             lastWidth = lastWidth + shardWidth;
           }
-          console.log("Shard Combined: " + shardWidthRunningCount);
-          console.log(layer);
           shatterLayers.push(layer);
         }
-        
+
+        console.log("Layers");
+        shatterLayers[0].forEach(function(coord) {
+            console.log(coord);
+            var mat = new THREE.LineBasicMaterial({color: 0x000000});
+            var geo = new THREE.Geometry();
+            geo.vertices.push(
+                new THREE.Vector3(impactPoint.position.x, impactPoint.position.y, 0),
+                new THREE.Vector3(coord['x'], coord['y'], 0)
+            );
+            var line = new THREE.Line(geo, mat);
+            scene.add(line);
+        });
+
+
     }
 }
 
