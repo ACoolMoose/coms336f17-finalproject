@@ -12,7 +12,7 @@ var impactPoint;
 var shatterLayerRange = 10;
 var shatterShardCountMin = 5;
 var shatterShardCountMax = 10;
-var shardWidthMin = 5;
+var shardWidthMin = 10;
 
 var camera;
 
@@ -49,62 +49,58 @@ function onDocumentMouseClick(event) {
 
         var startPoint = {'x': impactPoint.position.x, 'y': impactPoint.position.y};
 
-        for(var i = 0; i < shatterLayerCount; ++i){
-          console.log("Shatter Layer " + i);
-          var shatterShardCount = Math.floor((Math.random() * (shatterShardCountMax-shatterShardCountMin)) + shatterShardCountMin);
-          var remainingSpace = 360;
-          var lastWidth = 0;
-          var shardWidthRunningCount = 0;
-          var layer = []
-          layer.push(startPoint);
-          var first_x = startPoint['x'] + (Math.random() * shatterLayerDistance);
-          layer.push({'x': first_x > width ? width : first_x, 'y': startPoint['y']});
-
-          for(var sc = 1; sc < shatterShardCount; ++ sc){
-            console.log("Shard " + sc);
-
-            // if last shard, take all remaining space
-            var shardWidth = remainingSpace/(shatterShardCount - sc);
-            if(sc < shatterShardCount - 1){
-              shardWidth = Math.floor(shardWidth + (Math.random() * (Math.random() > .5 ? shardWidth : - shardWidth)));
-              remainingSpace -= shardWidth;
-            }
-            console.log(shardWidth);
-            var absolutWidth = shardWidth + lastWidth;
-
-            var shardLen = (Math.random() * shatterLayerDistance);
-            var riseAmnt = shardLen * Math.sin(toRadians(absolutWidth));
-            var slideAmnt = shardLen * Math.cos(toRadians(absolutWidth));
-
-            //Add point to layer
-            var new_x = startPoint['x'] + slideAmnt;
-            var new_y = startPoint['y'] + riseAmnt;
-            new_x = new_x > width ? width : new_x < -width ? -width : new_x;
-            new_y = new_y > height ? height : new_y < -height ? -height : new_y;
-            layer.push({'x': new_x, 'y': new_y});
-            
-            
-            
+        // generate layer 1
+        shatterLayers.push(layer1(startPoint,shatterLayerDistance));
 
 
-            shardWidthRunningCount += shardWidth;
-            lastWidth = lastWidth + shardWidth;
-          }
-          shatterLayers.push(layer);
-        }
+        // draw first layer
+        for(var i = 1; i < shatterLayers[0].length - 1; i++){
+            var point1 = startPoint;
+            var point2 = shatterLayers[0][i];
+            var point3 = shatterLayers[0][i + 1 > shatterLayers[0].length - 2 ? 1 : i + 1];
 
-        console.log("Layers");
-        shatterLayers[0].forEach(function(coord) {
-            console.log(coord);
             var mat = new THREE.LineBasicMaterial({color: 0x000000});
             var geo = new THREE.Geometry();
             geo.vertices.push(
-                new THREE.Vector3(impactPoint.position.x, impactPoint.position.y, 0),
-                new THREE.Vector3(coord['x'], coord['y'], 0)
+                new THREE.Vector3(point1['x'], point1['y'], .001),
+                new THREE.Vector3(point2['x'], point2['y'], .001)
             );
             var line = new THREE.Line(geo, mat);
             scene.add(line);
-        });
+
+            var mat = new THREE.LineBasicMaterial({color: 0x000000});
+            var geo = new THREE.Geometry();
+            geo.vertices.push(
+                new THREE.Vector3(point2['x'], point2['y'], .001),
+                new THREE.Vector3(point3['x'], point3['y'], .001)
+            );
+            var line = new THREE.Line(geo, mat);
+            scene.add(line);
+
+            var mat = new THREE.LineBasicMaterial({color: 0x000000});
+            var geo = new THREE.Geometry();
+            geo.vertices.push(
+                new THREE.Vector3(point3['x'], point3['y'], .001),
+                new THREE.Vector3(point1['x'], point1['y'], .001)
+            );
+            var line = new THREE.Line(geo, mat);
+            scene.add(line);
+        }
+        
+        
+
+
+
+        for(var i = 0; i < shatterLayerCount; ++i){
+          
+          
+          
+        }
+
+        // console.log("Layers");
+        // shatterLayers[0].forEach(function(coord) {
+        //     console.log(coord);
+        // });
 
 
     }
@@ -112,6 +108,52 @@ function onDocumentMouseClick(event) {
 
 function toRadians (angle) {
   return angle * (Math.PI / 180);
+}
+
+function layer1(startPoint, shatterLayerDistance){
+    var shatterShardCount = Math.floor((Math.random() * (shatterShardCountMax-shatterShardCountMin)) + shatterShardCountMin);
+
+    var remainingSpace = 360;
+    var lastWidth = 0;
+    var shardWidthRunningCount = 0;
+    var layer = []
+    layer.push(startPoint);
+    var first_x = startPoint['x'] + (Math.random() * shatterLayerDistance);
+    layer.push({'x': first_x > width ? width : first_x, 'y': startPoint['y']});
+
+    for(var sc = 1; sc < shatterShardCount; ++ sc){
+      console.log("Shard " + sc);
+
+      // if last shard, take all remaining space
+      var shardWidth = remainingSpace/(shatterShardCount - sc);
+      if(sc < shatterShardCount - 1){
+        shardWidth = Math.floor(shardWidth + (Math.random() * (Math.random() > .5 ? shardWidth : - shardWidth)));
+        remainingSpace -= shardWidth;
+      }
+      console.log(shardWidth);
+      if(shardWidth < shardWidthMin){
+          console.log("Skipped Shard");
+          continue;
+      }
+
+      var absolutWidth = shardWidth + lastWidth;
+
+      var shardLen = (Math.random() * shatterLayerDistance);
+      var riseAmnt = shardLen * Math.sin(toRadians(absolutWidth));
+      var slideAmnt = shardLen * Math.cos(toRadians(absolutWidth));
+
+      //Add point to layer
+      var new_x = startPoint['x'] + slideAmnt;
+      var new_y = startPoint['y'] + riseAmnt;
+      new_x = new_x > width ? width : new_x < -width ? -width : new_x;
+      new_y = new_y > height ? height : new_y < -height ? -height : new_y;
+      layer.push({'x': new_x, 'y': new_y});
+
+      shardWidthRunningCount += shardWidth;
+      lastWidth = lastWidth + shardWidth;
+    }
+
+    return layer;
 }
 
 /*
