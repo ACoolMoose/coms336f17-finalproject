@@ -9,9 +9,9 @@ var scene;
 var solidShape;
 
 var impactPoint;
-var shatterLayerRange = 10;
+var shatterLayerRange = 3;//10
 var shatterShardCountMin = 5;
-var shatterShardCountMax = 10;
+var shatterShardCountMax = 5;//10
 var shardWidthMin = 10;
 
 var camera;
@@ -52,18 +52,40 @@ function onDocumentMouseClick(event) {
         // generate layer 1
         shatterLayers.push(layer1(startPoint,shatterLayerDistance));
 
+        // Draw first layer lines
+        //console.log(shatterLayers[0]);
+        shatterLayers[0].forEach(function(line){
+            var mat = new THREE.LineBasicMaterial({color: 0xff0000});
+            var geo = new THREE.Geometry();
+            geo.vertices.push(
+                new THREE.Vector3(startPoint['x'], startPoint['y'], .003),
+                new THREE.Vector3(line['x'], line['y'], .003)
+            );
+            var line = new THREE.Line(geo, mat);
+            scene.add(line);
+        });
 
-        // draw first layer
-        for(var i = 1; i < shatterLayers[0].length - 1; i++){
+        
+        //draw first layer
+        for(var i = 0; i < shatterLayers[0].length; i++){
+
+            var i1 = 'M';
+            var i2 = i;
+            var i3 = i + 1 > shatterLayers[0].length - 1 ? 0 : i + 1;
+
+            //console.log(i1, i2, i3);
+            
             var point1 = startPoint;
-            var point2 = shatterLayers[0][i];
-            var point3 = shatterLayers[0][i + 1 > shatterLayers[0].length - 2 ? 1 : i + 1];
+            var point2 = shatterLayers[0][i2];
+            var point3 = shatterLayers[0][i3];
+
+            
 
             var mat = new THREE.LineBasicMaterial({color: 0x000000});
             var geo = new THREE.Geometry();
             geo.vertices.push(
-                new THREE.Vector3(point1['x'], point1['y'], .001),
-                new THREE.Vector3(point2['x'], point2['y'], .001)
+                new THREE.Vector3(point1['x'], point1['y'], .003),
+                new THREE.Vector3(point2['x'], point2['y'], .003)
             );
             var line = new THREE.Line(geo, mat);
             scene.add(line);
@@ -71,8 +93,8 @@ function onDocumentMouseClick(event) {
             var mat = new THREE.LineBasicMaterial({color: 0x000000});
             var geo = new THREE.Geometry();
             geo.vertices.push(
-                new THREE.Vector3(point2['x'], point2['y'], .001),
-                new THREE.Vector3(point3['x'], point3['y'], .001)
+                new THREE.Vector3(point2['x'], point2['y'], .003),
+                new THREE.Vector3(point3['x'], point3['y'], .003)
             );
             var line = new THREE.Line(geo, mat);
             scene.add(line);
@@ -80,8 +102,8 @@ function onDocumentMouseClick(event) {
             var mat = new THREE.LineBasicMaterial({color: 0x000000});
             var geo = new THREE.Geometry();
             geo.vertices.push(
-                new THREE.Vector3(point3['x'], point3['y'], .001),
-                new THREE.Vector3(point1['x'], point1['y'], .001)
+                new THREE.Vector3(point3['x'], point3['y'], .003),
+                new THREE.Vector3(point1['x'], point1['y'], .003)
             );
             var line = new THREE.Line(geo, mat);
             scene.add(line);
@@ -91,16 +113,10 @@ function onDocumentMouseClick(event) {
 
 
 
-        for(var i = 0; i < shatterLayerCount; ++i){
-          
-          
-          
+        for(var i = 1; i < shatterLayerCount; ++i){
+          console.log("Generating layer:", i); // DISPLAY
+          shatterLayers.push(layerN(shatterLayers[i - 1], shatterLayerDistance));
         }
-
-        // console.log("Layers");
-        // shatterLayers[0].forEach(function(coord) {
-        //     console.log(coord);
-        // });
 
 
     }
@@ -110,50 +126,162 @@ function toRadians (angle) {
   return angle * (Math.PI / 180);
 }
 
+function toDegrees (angle) {
+    return angle * (180 / Math.PI);
+  }
+
 function layer1(startPoint, shatterLayerDistance){
     var shatterShardCount = Math.floor((Math.random() * (shatterShardCountMax-shatterShardCountMin)) + shatterShardCountMin);
+    console.log("Shatter Count:", shatterShardCount - 1); // DISPLAY
 
     var remainingSpace = 360;
     var lastWidth = 0;
     var shardWidthRunningCount = 0;
     var layer = []
-    layer.push(startPoint);
-    var first_x = startPoint['x'] + (Math.random() * shatterLayerDistance);
+    //var first_x = startPoint['x'] + Math.floor(Math.random()*(shatterLayerDistance-(shatterLayerDistance/2)+1)+(shatterLayerDistance/2));
+    var first_x = startPoint['x'] + randomFromInterval(shatterLayerDistance/2, shatterLayerDistance);
+    console.log("Shatter Dist", shatterLayerDistance); // DISPLAY
     layer.push({'x': first_x > width ? width : first_x, 'y': startPoint['y']});
 
-    for(var sc = 1; sc < shatterShardCount; ++ sc){
-      console.log("Shard " + sc);
+    for(var sc = 1; sc < shatterShardCount - 1; ++ sc){
 
       // if last shard, take all remaining space
       var shardWidth = remainingSpace/(shatterShardCount - sc);
       if(sc < shatterShardCount - 1){
-        shardWidth = Math.floor(shardWidth + (Math.random() * (Math.random() > .5 ? shardWidth : - shardWidth)));
+        shardWidth = Math.floor(shardWidth + (Math.random() > .5 ? shardWidth * .25 : - shardWidth * .25));
         remainingSpace -= shardWidth;
       }
-      console.log(shardWidth);
+      
       if(shardWidth < shardWidthMin){
-          console.log("Skipped Shard");
-          continue;
+          console.log("Skipped");
+          
+      }else{
+        //console.log("Shard:", shardWidth);  // DISPLAY
+        var absolutWidth = shardWidth + lastWidth;
+        
+        var shardLen = (Math.random() * shatterLayerDistance);
+        var riseAmnt = shardLen * Math.sin(toRadians(absolutWidth));
+        var slideAmnt = shardLen * Math.cos(toRadians(absolutWidth));
+
+        //Add point to layer
+        var new_x = startPoint['x'] + slideAmnt;
+        var new_y = startPoint['y'] + riseAmnt;
+        new_x = new_x > width ? width : new_x < -width ? -width : new_x;
+        new_y = new_y > height ? height : new_y < -height ? -height : new_y;
+        layer.push({'x': new_x, 'y': new_y});
+
+        shardWidthRunningCount += shardWidth;
+        lastWidth = lastWidth + shardWidth;
       }
 
-      var absolutWidth = shardWidth + lastWidth;
-
-      var shardLen = (Math.random() * shatterLayerDistance);
-      var riseAmnt = shardLen * Math.sin(toRadians(absolutWidth));
-      var slideAmnt = shardLen * Math.cos(toRadians(absolutWidth));
-
-      //Add point to layer
-      var new_x = startPoint['x'] + slideAmnt;
-      var new_y = startPoint['y'] + riseAmnt;
-      new_x = new_x > width ? width : new_x < -width ? -width : new_x;
-      new_y = new_y > height ? height : new_y < -height ? -height : new_y;
-      layer.push({'x': new_x, 'y': new_y});
-
-      shardWidthRunningCount += shardWidth;
-      lastWidth = lastWidth + shardWidth;
+      
     }
+    //console.log("Remaining:", remainingSpace); // DISPLAY (last shard)
 
     return layer;
+}
+
+function layerN(outsidePoints, shatterLayerDistance){
+    var layer = []
+
+    for(var i = 0; i < outsidePoints.length; i++){
+        var i1 = i;
+        var i2 = i - 1 < 0 ? outsidePoints.length - 1 : i - 1;
+        var i3 = i + 1 == outsidePoints.length ? 0 : i + 1;
+
+        var point = outsidePoints[i1];
+        var right = outsidePoints[i2];
+        var left = outsidePoints[i3];
+
+        console.log(i1, i2, i3);
+
+        var angleRadians = Math.atan2(left['y'] - point['y'], left['x'] - point['x']);
+        var leftAngle = toDegrees(angleRadians);
+        leftAngle = to_positive_angle(leftAngle);
+        
+        
+        angleRadians = Math.atan2(right['y'] - point['y'], right['x'] - point['x']);
+        var rightAngle = toDegrees(angleRadians);
+        rightAngle = to_positive_angle(rightAngle);
+        
+
+        leftAngle = getOtherAngle(leftAngle);
+        rightAngle = getOtherAngle(rightAngle);
+        
+
+        
+
+        console.log(leftAngle, rightAngle);
+
+       
+        
+
+      
+
+
+
+        
+        // var min = rightAngle > leftAngle ? leftAngle : rightAngle;
+        // var max = rightAngle > leftAngle ? rightAngle : leftAngle;
+
+        // var split = (Math.abs(min) + Math.abs(max))/2;
+        // var toAdd = Math.random() * (split * .25);
+
+        // // selected angle to generate new crack
+        // var selected = Math.random() > .5 ? split + toAdd : split - toAdd;
+        // var selectedDistance = randomFromInterval(shatterLayerDistance/2, shatterLayerDistance);
+
+        // console.log("Selected:", selected, "at distance", selectedDistance, "between", min, max);
+
+        // var riseAmnt = selectedDistance * Math.sin(toRadians(selected));
+        // var slideAmnt = selectedDistance * Math.cos(toRadians(selected));
+
+        // var new_y = point['y'] + riseAmnt;
+        // var new_x = point['x'] + slideAmnt;
+        // new_x = new_x > width ? width : new_x < -width ? -width : new_x;
+        // new_y = new_y > height ? height : new_y < -height ? -height : new_y;
+
+
+        
+
+        // var mat = new THREE.LineBasicMaterial({color: 0xff0000});
+        // var geo = new THREE.Geometry();
+        // geo.vertices.push(
+        //     new THREE.Vector3(point['x'], point['y'], .003),
+        //     new THREE.Vector3(new_x, new_y, .003)
+        // );
+        // var line = new THREE.Line(geo, mat);
+        // scene.add(line);
+        
+        
+    }
+    
+
+    return layer;
+}
+
+function randomFromInterval(min,max)
+{
+    return (Math.random()*(max-min+1)+min);
+}
+
+function to_positive_angle(angle)
+{
+   angle = angle % 360;
+   while(angle < 0) { 
+     angle += 360.0;
+   }
+
+   return angle;
+}
+
+function getOtherAngle(angle){
+    console.log("Get Other for:", angle);
+    if(angle < 180){
+        return -(180 - angle);
+    }else{
+        return 180 - (360 - angle);
+    }
 }
 
 /*
