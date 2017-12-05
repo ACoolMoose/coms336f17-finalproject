@@ -61,7 +61,7 @@ function onDocumentMouseClick(event) {
                 new THREE.Vector3(startPoint['x'], startPoint['y'], .003),
                 new THREE.Vector3(line['x'], line['y'], .003)
             );
-            var line = new THREE.Line(geo, mat);
+            line = new THREE.Line(geo, mat);
             scene.add(line);
         });
 
@@ -90,22 +90,22 @@ function onDocumentMouseClick(event) {
             var line = new THREE.Line(geo, mat);
             scene.add(line);
 
-            var mat = new THREE.LineBasicMaterial({color: 0x000000});
-            var geo = new THREE.Geometry();
+            mat = new THREE.LineBasicMaterial({color: 0x000000});
+            geo = new THREE.Geometry();
             geo.vertices.push(
                 new THREE.Vector3(point2['x'], point2['y'], .003),
                 new THREE.Vector3(point3['x'], point3['y'], .003)
             );
-            var line = new THREE.Line(geo, mat);
+            line = new THREE.Line(geo, mat);
             scene.add(line);
 
-            var mat = new THREE.LineBasicMaterial({color: 0x000000});
-            var geo = new THREE.Geometry();
+            mat = new THREE.LineBasicMaterial({color: 0x000000});
+            geo = new THREE.Geometry();
             geo.vertices.push(
                 new THREE.Vector3(point3['x'], point3['y'], .003),
                 new THREE.Vector3(point1['x'], point1['y'], .003)
             );
-            var line = new THREE.Line(geo, mat);
+            line = new THREE.Line(geo, mat);
             scene.add(line);
         }
         
@@ -113,7 +113,7 @@ function onDocumentMouseClick(event) {
 
 
 
-        for(var i = 1; i < shatterLayerCount; ++i){
+        for(i = 1; i < shatterLayerCount; ++i){
           console.log("Generating layer:", i); // DISPLAY
           shatterLayers.push(layerN(shatterLayers[i - 1], shatterLayerDistance));
         }
@@ -137,7 +137,7 @@ function layer1(startPoint, shatterLayerDistance){
     var remainingSpace = 360;
     var lastWidth = 0;
     var shardWidthRunningCount = 0;
-    var layer = []
+    var layer = [];
     //var first_x = startPoint['x'] + Math.floor(Math.random()*(shatterLayerDistance-(shatterLayerDistance/2)+1)+(shatterLayerDistance/2));
     var first_x = startPoint['x'] + randomFromInterval(shatterLayerDistance/2, shatterLayerDistance);
     console.log("Shatter Dist", shatterLayerDistance); // DISPLAY
@@ -182,12 +182,12 @@ function layer1(startPoint, shatterLayerDistance){
 }
 
 function layerN(outsidePoints, shatterLayerDistance){
-    var layer = []
+    var layer = [];
 
     for(var i = 0; i < outsidePoints.length; i++){
         var i1 = i;
         var i2 = i - 1 < 0 ? outsidePoints.length - 1 : i - 1;
-        var i3 = i + 1 == outsidePoints.length ? 0 : i + 1;
+        var i3 = i + 1 === outsidePoints.length ? 0 : i + 1;
 
         var point = outsidePoints[i1];
         var right = outsidePoints[i2];
@@ -284,63 +284,20 @@ function getOtherAngle(angle){
     }
 }
 
-/*
- *  Using sliders now
- */
+function getChar(event) {
+    if (event.which === null) {
+        return String.fromCharCode(event.keyCode) // IE
+    } else if (event.which !== 0 && event.charCode !== 0) {
+        return String.fromCharCode(event.which)   // the rest
+    } else {
+        return null // special key
+    }
+}
 
-// function getChar(event) {
-//     if (event.which === null) {
-//         return String.fromCharCode(event.keyCode) // IE
-//     } else if (event.which !== 0 && event.charCode !== 0) {
-//         return String.fromCharCode(event.which)   // the rest
-//     } else {
-//         return null // special key
-//     }
-// }
-//
-// function handleKeyPress(event) {
-//     var ch = getChar(event);
-//     if (cameraControl(camera, ch)) {
-//         return;
-//     }
-//
-//     switch (ch) {
-//         case 'z':
-//             impactForce -= 1;
-//             document.getElementById("impactForce").innerHTML = impactForce.toString();
-//             return;
-//         case 'Z':
-//             impactForce += 1;
-//             document.getElementById("impactForce").innerHTML = impactForce.toString();
-//             return;
-//         case 'x':
-//             materialStrength -= 1;
-//             document.getElementById("materialStrength").innerHTML = materialStrength.toString();
-//             return;
-//         case 'X':
-//             materialStrength += 1;
-//             document.getElementById("materialStrength").innerHTML = materialStrength.toString();
-//             return;
-//         case 'c':
-//             crackCountRange -= 1;
-//             document.getElementById("crackRange").innerHTML = crackCountRange.toString();
-//             return;
-//         case 'C':
-//             crackCountRange += 1;
-//             document.getElementById("crackRange").innerHTML = crackCountRange.toString();
-//             return;
-//         case 'v':
-//             impactForce = 100;
-//             materialStrength = 100;
-//             crackCountRange = 10;
-//             document.getElementById("impactForce").innerHTML = impactForce.toString();
-//             document.getElementById("materialStrength").innerHTML = materialStrength.toString();
-//             document.getElementById("crackRange").innerHTML = crackCountRange.toString();
-//             return;
-//         default:
-//             return;
-//     }
-// }
+function handleKeyPress(event) {
+    var ch = getChar(event);
+    cameraControl(camera, ch);
+}
 
 
 function onDocumentMouseMove(event) {
@@ -369,13 +326,7 @@ function onDocumentMouseMove(event) {
 
 function start() {
 
-    // Handle default vars
-    // document.getElementById("impactForce").innerHTML = impactForce.toString();
-    // document.getElementById("materialStrength").innerHTML = materialStrength.toString();
-    // document.getElementById("crackRange").innerHTML = crackCountRange.toString();
-
-
-    //window.onkeypress = handleKeyPress;
+    window.onkeypress = handleKeyPress;
     document.addEventListener('mousemove', onDocumentMouseMove, false);
     document.addEventListener("click", onDocumentMouseClick);
 
@@ -456,8 +407,6 @@ function start() {
 
     var render = function () {
         renderer.render(scene, camera);
-
-
 
         requestAnimationFrame(render);
     };
