@@ -42,7 +42,7 @@ function onDocumentMouseClick(event) {
         var shatterDistance = height > width ? height * shatterPercent : width * shatterPercent;
 
         console.log("Shatter Layers: " + numOfShatterLayers);
-        var shatterLayerDistance = shatterDistance / numOfShatterLayers;
+        var shatterLayerDistance = (shatterDistance / numOfShatterLayers);
 
         var shatterLayers = [];
 
@@ -62,7 +62,7 @@ function onDocumentMouseClick(event) {
                 var geo = new THREE.Geometry();
                 geo.vertices.push(
                     new THREE.Vector3(startPoint['x'], startPoint['y'], .003),
-                    new THREE.Vector3(clampWidth(line['x']), clampHeight(line['y']), .003)
+                    new THREE.Vector3(cW(line['x']), cH(line['y']), .003)
                 );
                 line = new THREE.Line(geo, mat);
                 scene.add(line);
@@ -88,13 +88,13 @@ function onDocumentMouseClick(event) {
                 .1);
 
             shape.lineTo(
-                clampWidth(shatterLayers[0][i]['x']),
-                 clampHeight(shatterLayers[0][i]['y']),
+                cW(shatterLayers[0][i]['x']),
+                 cH(shatterLayers[0][i]['y']),
                   .1);
 
             shape.lineTo(
-                clampWidth(shatterLayers[0][i + 1 >= gL ? 0 : i + 1]['x']),
-                clampHeight(shatterLayers[0][i + 1 >= gL ? 0 : i + 1]['y']),
+                cW(shatterLayers[0][i + 1 >= gL ? 0 : i + 1]['x']),
+                cH(shatterLayers[0][i + 1 >= gL ? 0 : i + 1]['y']),
                   .1);
     
             var t_mesh = new THREE.Mesh(new THREE.ShapeGeometry(shape), mat);
@@ -127,24 +127,24 @@ function onDocumentMouseClick(event) {
                     var mat = new THREE.LineBasicMaterial({color: 0xff0000});
                     var geo = new THREE.Geometry();
                     geo.vertices.push(
-                        new THREE.Vector3(clampWidth(p1['x']), clampHeight(p1['y']), .003),
-                        new THREE.Vector3(clampWidth(p2['x']), clampHeight(p2['y']), .003)
+                        new THREE.Vector3(cW(p1['x']), cH(p1['y']), .003),
+                        new THREE.Vector3(cW(p2['x']), cH(p2['y']), .003)
                     );
                     var line = new THREE.Line(geo, mat);
                     scene.add(line);
     
                     var geo = new THREE.Geometry();
                     geo.vertices.push(
-                        new THREE.Vector3(clampWidth(p3['x']), clampHeight(p3['y']), .003),
-                        new THREE.Vector3(clampWidth(p2['x']), clampHeight(p2['y']), .003)
+                        new THREE.Vector3(cW(p3['x']), cH(p3['y']), .003),
+                        new THREE.Vector3(cW(p2['x']), cH(p2['y']), .003)
                     );
                     line = new THREE.Line(geo, mat);
                     scene.add(line);
     
                     var geo = new THREE.Geometry();
                     geo.vertices.push(
-                        new THREE.Vector3(clampWidth(p1['x']), clampHeight(p1['y']), .003),
-                        new THREE.Vector3(clampWidth(p3['x']), clampHeight(p3['y']), .003)
+                        new THREE.Vector3(cW(p1['x']), cH(p1['y']), .003),
+                        new THREE.Vector3(cW(p3['x']), cH(p3['y']), .003)
                     );
                     var line = new THREE.Line(geo, mat);
                     scene.add(line);
@@ -160,23 +160,23 @@ function onDocumentMouseClick(event) {
                 var shape = new THREE.Shape();
                 
                 shape.moveTo(
-                    clampWidth(p1['x']),
-                    clampHeight(p1['y']),
+                    cW(p1['x']),
+                    cH(p1['y']),
                     .1);
     
                 shape.lineTo(
-                    clampWidth(p2['x']), 
-                    clampHeight(p2['y']),
+                    cW(p2['x']), 
+                    cH(p2['y']),
                       .1);
     
                 shape.lineTo(
-                    clampWidth(p3['x']),
-                    clampHeight(p3['y']),
+                    cW(p3['x']),
+                    cH(p3['y']),
                       .1);
 
                 shape.lineTo(
-                    clampWidth(p4['x']),
-                    clampHeight(p4['y']),
+                    cW(p4['x']),
+                    cH(p4['y']),
                     .1);
         
                 try{
@@ -198,66 +198,62 @@ function onDocumentMouseClick(event) {
 
 
         var increment = 360/appendageCount;
-        for(var i = 0; i < 1; ++i){
+        for(var i = 0; i < appendageCount; ++i){
+
+     
+
+
+
+
+
             console.log("big", i);
             var rads = toRadians(startAngle + (increment * i));
             var riseAmnt = shatterDistance * Math.sin(rads);
             var runAmnt = shatterDistance * Math.cos(rads);
+            var dump = riseAmnt > runAmnt ? riseAmnt : runAmnt;
+            console.log("DUMP", dump, shatterDistance);
 
             var p1 = {x: startPoint['x'] + runAmnt, y: startPoint['y'] + riseAmnt};
 
             rads = toRadians(startAngle + (increment * (i)));
-            riseAmnt = 10000 * Math.sin(rads);
-            runAmnt = 10000 * Math.cos(rads);
+            riseAmnt = 2*dump * Math.sin(rads);
+            runAmnt = 2*dump * Math.cos(rads);
 
             var p2 = {x: startPoint['x'] + runAmnt, y: startPoint['y'] + riseAmnt};
 
             var mat = new THREE.LineBasicMaterial({color: 0x0000ff});
             var geo = new THREE.Geometry();
             geo.vertices.push(
-                new THREE.Vector3(p1['x'], p1['y'], .003),
-                new THREE.Vector3(p2['x'], p2['y'], .003)
+                new THREE.Vector3(cW(p1['x']), cH(p1['y']), .003),
+                new THREE.Vector3(cW(p2['x']), cH(p2['y']), .003)
             );
             var line1 = new THREE.Line(geo, mat);
             scene.add(line1);
-
-            rads = toRadians(startAngle + (increment * (i+1)));
-            riseAmnt = shatterDistance * Math.sin(rads);
-            runAmnt = shatterDistance * Math.cos(rads);
-
-            var p3 = {x: startPoint['x'] + runAmnt, y: startPoint['y'] + riseAmnt};
-
-            rads = toRadians(startAngle + (increment * (i+1)));
-            riseAmnt = 10000 * Math.sin(rads);
-            runAmnt = 10000 * Math.cos(rads);
-
-            var p4 = {x: startPoint['x'] + runAmnt, y: startPoint['y'] + riseAmnt};
-
-            var mat = new THREE.LineBasicMaterial({color: 0x0000ff});
-            var geo = new THREE.Geometry();
-            geo.vertices.push(
-                new THREE.Vector3(p3['x'], p3['y'], .003),
-                new THREE.Vector3(p4['x'],  p4['y'], .003)
-            );
-            var line2 = new THREE.Line(geo, mat);
-            scene.add(line2);
-            
-
 
             // rads = toRadians(startAngle + (increment * (i+1)));
             // riseAmnt = shatterDistance * Math.sin(rads);
             // runAmnt = shatterDistance * Math.cos(rads);
 
-            // var p2 = {x: clampWidth(startPoint['x'] + runAmnt), y: clampHeight(startPoint['y'] + riseAmnt)};
-
-            
+            // var p3 = {x: startPoint['x'] + runAmnt, y: startPoint['y'] + riseAmnt};
 
             // rads = toRadians(startAngle + (increment * (i+1)));
-            // riseAmnt = 10000 * Math.sin(rads);
-            // runAmnt = 10000 * Math.cos(rads);
+            // riseAmnt = 2*dump * Math.sin(rads);
+            // runAmnt = 2*dump * Math.cos(rads);
 
-            // var p4 = {x: clampWidth(startPoint['x'] + runAmnt), y: clampHeight(startPoint['y'] + riseAmnt)};
+            // var p4 = {x: startPoint['x'] + runAmnt, y: startPoint['y'] + riseAmnt};
 
+            // var mat = new THREE.LineBasicMaterial({color: 0x00ffff});
+            // var geo = new THREE.Geometry();
+            // geo.vertices.push(
+            //     new THREE.Vector3(cW(p3['x']), cH(p3['y']), .003),
+            //     new THREE.Vector3(cW(p4['x']),  cH(p4['y']), .003)
+            // );
+            // var line2 = new THREE.Line(geo, mat);
+            // scene.add(line2);
+            
+
+
+            
             // var mat = new THREE.MeshPhongMaterial({
             //     color: 0xffffff,
             //     specular: 0x222222,
@@ -319,13 +315,15 @@ function withinShape(val){
     return x < width && x > -width && y < height && y > -height;
 }
 
-function clampWidth(val){
-    return val > width ? width : val < -width ? -width : val;
+function cW(val){
+    return val >= width ? width : val < -width ? -width : val;
 }
 
-function clampHeight(val){
-    return val > height ? height : val < -height ? -height : val;
+function cH(val){
+    return val >= height ? height : val < -height ? -height : val;
 }
+
+
 
 function pointDistance(p1, p2){
     return Math.sqrt(Math.pow(p2['x'] - p1['x'],2) + Math.pow(p2['y'] - p1['y'],2));
