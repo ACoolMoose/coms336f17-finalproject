@@ -7,14 +7,21 @@ height = 0.5 * height;
 var ourCanvas;
 var scene;
 var solidShape;
+var solidShapeShape;
 var fragments = [];
-var drawLines = true;
+var drawLines = false;
+var animate = false;
 
 var impactPoint;
 var shatterLayerRange = 3;//10
 var shatterShardCountMin = 5;
 var shatterShardCountMax = 5;//10
 var shardWidthMin = 10;
+var fragmentSpeedVariable = .009;
+var fragmentRotationVariable = .005;
+var frameNumber = 0;
+var lastFrame = 0;
+var isBroken = false;
 
 var camera;
 
@@ -32,6 +39,7 @@ function onDocumentMouseClick(event) {
     var shatterPercent = 0.0;
 
     if (inWidth && inHeight) {
+        isBroken = true;
         // Shatter whole thing
         if (impactForce >= materialStrength) {
             shatterPercent = 1.0;
@@ -193,104 +201,60 @@ function onDocumentMouseClick(event) {
         }
 
 
-        
+
         // generate 'large' ouside pieces
+        console.log("outside");
+        var vectors = [];
+        shatterLayers[shatterLayers.length-1].forEach(function(point){
+            vectors.push(new THREE.Vector3(cW(point['x']),cH(point['y']),.1));
+        });
+        var path = new THREE.Path(vectors);
+
+        scene.remove(solidShape);
+
+        var mat = new THREE.MeshPhongMaterial({
+            color: 0xffffff,
+            specular: 0x222222,
+            shininess: 1000,
+            side: THREE.DoubleSide /*shading: THREE.FlatShading*/
+        });
+
+        solidShapeShape.holes.push(path);
+        var holeShape1 = new THREE.Mesh(new THREE.ShapeGeometry(solidShapeShape), mat);
+        
+        scene.add(holeShape1);
+        fragments.push(holeShape1);
 
 
-        var increment = 360/appendageCount;
-        for(var i = 0; i < appendageCount; ++i){
+        // move fragments
+        console.log(fragments);
 
-     
+        fragments.forEach(function(fragment){
+            var x_sum = 0;
+            var y_sum = 0;
+            fragment.geometry.vertices.forEach(function(vertex){
+                x_sum += vertex.x;
+                y_sum += vertex.y;
+            });
 
-
-
-
-
-            console.log("big", i);
-            var rads = toRadians(startAngle + (increment * i));
-            var riseAmnt = shatterDistance * Math.sin(rads);
-            var runAmnt = shatterDistance * Math.cos(rads);
-            var dump = riseAmnt > runAmnt ? riseAmnt : runAmnt;
-            console.log("DUMP", dump, shatterDistance);
-
-            var p1 = {x: startPoint['x'] + runAmnt, y: startPoint['y'] + riseAmnt};
-
-            rads = toRadians(startAngle + (increment * (i)));
-            riseAmnt = 2*dump * Math.sin(rads);
-            runAmnt = 2*dump * Math.cos(rads);
-
-            var p2 = {x: startPoint['x'] + runAmnt, y: startPoint['y'] + riseAmnt};
-
-            var mat = new THREE.LineBasicMaterial({color: 0x0000ff});
-            var geo = new THREE.Geometry();
-            geo.vertices.push(
-                new THREE.Vector3(cW(p1['x']), cH(p1['y']), .003),
-                new THREE.Vector3(cW(p2['x']), cH(p2['y']), .003)
-            );
-            var line1 = new THREE.Line(geo, mat);
-            scene.add(line1);
-
-            // rads = toRadians(startAngle + (increment * (i+1)));
-            // riseAmnt = shatterDistance * Math.sin(rads);
-            // runAmnt = shatterDistance * Math.cos(rads);
-
-            // var p3 = {x: startPoint['x'] + runAmnt, y: startPoint['y'] + riseAmnt};
-
-            // rads = toRadians(startAngle + (increment * (i+1)));
-            // riseAmnt = 2*dump * Math.sin(rads);
-            // runAmnt = 2*dump * Math.cos(rads);
-
-            // var p4 = {x: startPoint['x'] + runAmnt, y: startPoint['y'] + riseAmnt};
-
-            // var mat = new THREE.LineBasicMaterial({color: 0x00ffff});
-            // var geo = new THREE.Geometry();
-            // geo.vertices.push(
-            //     new THREE.Vector3(cW(p3['x']), cH(p3['y']), .003),
-            //     new THREE.Vector3(cW(p4['x']),  cH(p4['y']), .003)
-            // );
-            // var line2 = new THREE.Line(geo, mat);
-            // scene.add(line2);
+            var x_avg = x_sum / fragment.geometry.vertices.length;
+            var y_avg = y_sum / fragment.geometry.vertices.length;
             
+            if(drawLines){
+                var dotGeometry = new THREE.Geometry();
+                dotGeometry.vertices.push(new THREE.Vector3( x_avg, y_avg, .01));
+                var dotMaterial = new THREE.PointsMaterial( { size: 2, sizeAttenuation: false, color: 0xff0000 } );
+                var dot = new THREE.Points( dotGeometry, dotMaterial );
+                scene.add( dot );
+            }
 
-
-            
-            // var mat = new THREE.MeshPhongMaterial({
-            //     color: 0xffffff,
-            //     specular: 0x222222,
-            //     shininess: 1000,
-            //     side: THREE.DoubleSide /*shading: THREE.FlatShading*/
-            // });
-            // var shape = new THREE.Shape();
-            
-            // var parts = [p3,p2,p4];
-            // var currentPos = p1;
-            
-            // shape.moveTo(
-            //     p1['x'],
-            //     p1['y'],
-            //     .1);
-
-            //     for(var checker = 0; checker < 3; checker++){
-            //         var check = pointDistance(currentPos, parts[checker]);
-            //         console.log("CHeck:", check);
-            //         if(check > .001){
-            //             shape.lineTo(parts[checker]['x'], parts['y'], .1);
-            //             currentPos = parts[checker];
-            //         }
-            //     }
-    
-            // try{
-            //     var t_mesh = new THREE.Mesh(new THREE.ShapeGeometry(shape), mat);
-                
-            //     scene.add(t_mesh);
-            //     fragments.push(t_mesh);
-            // }catch(err){
-            //     console.error(err);
-            // }
-        }
-
-        //remove org object
-        //scene.remove(solidShape);
+            var fragment_center = {x: x_avg, y: y_avg };
+            var distanceFromCenter = pointDistance(startPoint, fragment_center);
+            var angleDeg = to_positive_angle(Math.atan2(y_avg - startPoint['y'], x_avg - startPoint['x']) * 180 / Math.PI);
+            var moveSpinPerc = 1/(1 + Math.pow(distanceFromCenter,2));
+            fragment['moveSpinPerc'] = moveSpinPerc;
+            fragment['spinAngle'] = angleDeg;
+        });
     }
 }
 
@@ -534,6 +498,17 @@ function getChar(event) {
 
 function handleKeyPress(event) {
     var ch = getChar(event);
+    if(ch == ']'){
+        frameNumber ++;
+        console.log(frameNumber);
+    }
+    if(ch == '['){
+        frameNumber --;
+        if(frameNumber < 0){
+            frameNumber = 0;
+        }
+        console.log(frameNumber);
+    }
     cameraControl(camera, ch);
 }
 
@@ -586,14 +561,14 @@ function start() {
     });
 
 
-    var shape = new THREE.Shape();
-    shape.moveTo(-width, -height);
-    shape.lineTo(width, -height);
-    shape.lineTo(width, height);
-    shape.lineTo(-width, height);
+    solidShapeShape = new THREE.Shape();
+    solidShapeShape.moveTo(-width, -height);
+    solidShapeShape.lineTo(width, -height);
+    solidShapeShape.lineTo(width, height);
+    solidShapeShape.lineTo(-width, height);
 
 
-    solidShape = new THREE.Mesh(new THREE.ShapeGeometry(shape), material);
+    solidShape = new THREE.Mesh(new THREE.ShapeGeometry(solidShapeShape), material);
 
     scene.add(solidShape);
 
@@ -644,8 +619,33 @@ function start() {
     scene.add(light);
 
     var render = function () {
-        renderer.render(scene, camera);
+        if(isBroken && lastFrame != frameNumber){
+            fragments.forEach(function(fragment){
+                fragment.position.z = -(frameNumber * (fragmentSpeedVariable )) * fragment['moveSpinPerc'];
 
+                var riseAmnt = fragment['moveSpinPerc'] * Math.sin(toRadians(fragment['spinAngle']));
+                var runAmnt = fragment['moveSpinPerc'] * Math.cos(toRadians(fragment['spinAngle']));
+
+                fragment.rotation.y = (frameNumber * riseAmnt * fragmentRotationVariable);
+                fragment.rotation.x = (frameNumber * runAmnt * fragmentRotationVariable);
+                
+                lastFrame = frameNumber;
+            });
+        }
+
+        if(animate){
+            frameNumber += 2;
+            if(frameNumber > 1000 && frameNumber < 1500){
+                isBroken = false;
+            }
+
+            if(frameNumber > 1500){
+                frameNumber = 0;
+                isBroken = true;
+            }
+        }
+
+        renderer.render(scene, camera);
         requestAnimationFrame(render);
     };
 
