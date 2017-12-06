@@ -195,43 +195,73 @@ function layerN(outsidePoints, shatterLayerDistance){
 
         console.log(i1, i2, i3);
 
-        var angleRadians = Math.atan2(left['y'] - point['y'], left['x'] - point['x']);
-        var leftAngle = toDegrees(angleRadians);
-        leftAngle = to_positive_angle(leftAngle);
+        var reverseLeft = { x: point['x'] - (left['x'] - point['x']), y: point['y'] - (left['y'] - point['y']) };
+        var reverseRight = { x: point['x'] - (right['x'] - point['x']), y: point['y'] - (right['y'] - point['y']) };
+
+        // Show reverse lines
+        if(true){
+            var mat = new THREE.LineBasicMaterial({color: 0xffffff});
+            var geo = new THREE.Geometry();
+            geo.vertices.push(
+                new THREE.Vector3(point['x'], point['y'], .003),
+                new THREE.Vector3(reverseLeft['x'], reverseLeft['y'], .003)
+            );
+            var line = new THREE.Line(geo, mat);
+            scene.add(line);
+            geo = new THREE.Geometry();
+            geo.vertices.push(
+                new THREE.Vector3(point['x'], point['y'], .003),
+                new THREE.Vector3(reverseRight['x'], reverseRight['y'], .003)
+            );
+            var line = new THREE.Line(geo, mat);
+            scene.add(line);
+        }
+
+        var angleLeft = toDegrees(Math.atan2(left['y'] - point['y'], left['x'] - point['x']));
+        var angleRight = toDegrees(Math.atan2(right['y'] - point['y'], right['x'] - point['x']));
+        var angleReverseLeft = toDegrees(Math.atan2(reverseLeft['y'] - point['y'], reverseLeft['x'] - point['x']));
+        var angleReverseRight = toDegrees(Math.atan2(reverseRight['y'] - point['y'], reverseRight['x'] - point['x']));
+
+        console.log(angleLeft - angleRight);
+
+        if(angleLeft - angleRight > 180){
+            console.log("use reverse");
+        }else{
+            console.log("use normal");
+        }
+
+        console.log(angleLeft, angleRight, angleReverseLeft, angleReverseRight);
+        
+
+
+
+
+        // var angleRadians = Math.atan2(left['y'] - point['y'], left['x'] - point['x']);
+        // var leftAngle = toDegrees(angleRadians);
+        // leftAngle = to_positive_angle(leftAngle);
         
         
-        angleRadians = Math.atan2(right['y'] - point['y'], right['x'] - point['x']);
-        var rightAngle = toDegrees(angleRadians);
-        rightAngle = to_positive_angle(rightAngle);
+        // angleRadians = Math.atan2(right['y'] - point['y'], right['x'] - point['x']);
+        // var rightAngle = toDegrees(angleRadians);
+        // rightAngle = to_positive_angle(rightAngle);
         
 
-        leftAngle = getOtherAngle(leftAngle);
-        rightAngle = getOtherAngle(rightAngle);
+        // leftAngle = getOtherAngle(leftAngle);
+        // rightAngle = getOtherAngle(rightAngle);
         
-
-        
-
-        console.log(leftAngle, rightAngle);
-
-       
-        
-
-      
-
-
-
+        // console.log("Selecting Between:", leftAngle, rightAngle);
         
         // var min = rightAngle > leftAngle ? leftAngle : rightAngle;
         // var max = rightAngle > leftAngle ? rightAngle : leftAngle;
 
-        // var split = (Math.abs(min) + Math.abs(max))/2;
+        // var split = (min + max)/2;
         // var toAdd = Math.random() * (split * .25);
 
         // // selected angle to generate new crack
         // var selected = Math.random() > .5 ? split + toAdd : split - toAdd;
         // var selectedDistance = randomFromInterval(shatterLayerDistance/2, shatterLayerDistance);
 
-        // console.log("Selected:", selected, "at distance", selectedDistance, "between", min, max);
+        // console.log("Selected:", selected, "at distance", selectedDistance);
 
         // var riseAmnt = selectedDistance * Math.sin(toRadians(selected));
         // var slideAmnt = selectedDistance * Math.cos(toRadians(selected));
