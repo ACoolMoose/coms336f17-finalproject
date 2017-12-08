@@ -81,7 +81,15 @@ function onDocumentMouseClick(event) {
 
         // generate layer 1
         info("<b>Layer 1</b>");
-        shatterLayers.push(generateLayer(startPoint, startAngle, shatterLayerDistance, appendageCount));
+        if(experimental){
+            var total = Math.pow(numOfShatterLayers, 2);
+            var percent = 1/total;
+            shatterLayers.push(generateLayer(startPoint, startAngle, shatterDistance * percent, appendageCount));
+        }
+        else{
+            shatterLayers.push(generateLayer(startPoint, startAngle, shatterLayerDistance, appendageCount));
+        }
+        
         
 
         // generate layer 1 shapes
@@ -113,14 +121,18 @@ function onDocumentMouseClick(event) {
         // generate layer n shapes
         for(var i = 1; i <= numOfShatterLayers; ++i){
             info("<b>Layer: " + (i+1) + "</b>");
-            if(i < numOfShatterLayers){
-                shatterLayers.push(generateLayer(startPoint, startAngle, shatterLayerDistance * i, appendageCount))
+            if(experimental && i == numOfShatterLayers){
+                shatterLayers.push(generateLayer(startPoint, startAngle, (shatterLayerDistance * i) + randomFromInterval(0,shatterLayerDistance), appendageCount))
             }else{
                 if(experimental){
-                    shatterLayers.push(generateLayer(startPoint, startAngle, (shatterLayerDistance * i) + randomFromInterval(0,shatterLayerDistance), appendageCount))
+                    var total = Math.pow(numOfShatterLayers, 2);
+                    var part = Math.pow(i, 2);
+                    var percent = part/total;
+                    shatterLayers.push(generateLayer(startPoint, startAngle, percent*shatterDistance, appendageCount))
                 }else{
-                    shatterLayers.push(generateLayer(startPoint, startAngle, shatterLayerDistance * i, appendageCount))
-                }   
+                    shatterLayers.push(generateLayer(startPoint, startAngle, (shatterLayerDistance * i), appendageCount))
+                }
+                
             }
         }
 
@@ -141,28 +153,74 @@ function onDocumentMouseClick(event) {
                     cW(p1['x']),
                     cH(p1['y']),
                     .1);
-    
-                shape.lineTo(
-                    cW(p2['x']), 
-                    cH(p2['y']),
-                      .1);
-    
-                shape.lineTo(
-                    cW(p3['x']),
-                    cH(p3['y']),
-                      .1);
 
-                shape.lineTo(
-                    cW(p4['x']),
-                    cH(p4['y']),
-                    .1);
+                if(experimental){
+
+                    shape.lineTo(
+                        cW(p2['x']), 
+                        cH(p2['y']),
+                          .1);
         
-                try{
-                    var t_mesh = new THREE.Mesh(new THREE.ShapeGeometry(shape), drawLines ? lineMaterial : objectMaterial);
-                    scene.add(t_mesh);
-                    fragments.push(t_mesh);
-                }catch(err){
-                    console.error(err);
+                    shape.lineTo(
+                        cW(p3['x']),
+                        cH(p3['y']),
+                          .1);
+
+                    try{
+                        var t_mesh = new THREE.Mesh(new THREE.ShapeGeometry(shape), drawLines ? lineMaterial : objectMaterial);
+                        scene.add(t_mesh);
+                        fragments.push(t_mesh);
+                    }catch(err){
+                        console.error(err);
+                    }
+
+                    var shape = new THREE.Shape();
+                    shape.moveTo(
+                        cW(p1['x']),
+                        cH(p1['y']),
+                        .1);
+
+                    shape.lineTo(
+                        cW(p3['x']),
+                        cH(p3['y']),
+                        .1);
+    
+                    shape.lineTo(
+                        cW(p4['x']),
+                        cH(p4['y']),
+                        .1);
+            
+                    try{
+                        var t_mesh = new THREE.Mesh(new THREE.ShapeGeometry(shape), drawLines ? lineMaterial : objectMaterial);
+                        scene.add(t_mesh);
+                        fragments.push(t_mesh);
+                    }catch(err){
+                        console.error(err);
+                    }
+
+                }else{
+                    shape.lineTo(
+                        cW(p2['x']), 
+                        cH(p2['y']),
+                          .1);
+        
+                    shape.lineTo(
+                        cW(p3['x']),
+                        cH(p3['y']),
+                          .1);
+    
+                    shape.lineTo(
+                        cW(p4['x']),
+                        cH(p4['y']),
+                        .1);
+            
+                    try{
+                        var t_mesh = new THREE.Mesh(new THREE.ShapeGeometry(shape), drawLines ? lineMaterial : objectMaterial);
+                        scene.add(t_mesh);
+                        fragments.push(t_mesh);
+                    }catch(err){
+                        console.error(err);
+                    }
                 }
             }
         }
@@ -221,8 +279,16 @@ function generateLayer(point, startAngle, distance, points){
         var rads = toRadians(startAngle + (increment * i));
         var riseAmnt = distance * Math.sin(rads);
         var runAmnt = distance * Math.cos(rads);
-        layer.push({x: point['x'] + runAmnt, y: point['y'] + riseAmnt});
-        info("Point: " + (point['x'] + runAmnt).toFixed(6) + " " + (point['y'] + riseAmnt).toFixed(6) + " Angle: " + (startAngle + (increment * i)));
+        if(experimental){
+            runAmnt = runAmnt + (Math.random() * .25 * runAmnt);
+            riseAmnt = riseAmnt + (Math.random() * .25 * riseAmnt);
+            layer.push({x: point['x'] + runAmnt, y: point['y'] + riseAmnt});
+            info("Point: " + (point['x'] + runAmnt).toFixed(6) + " " + (point['y'] + riseAmnt).toFixed(6) + " Angle: " + (startAngle + (increment * i)));
+        }else{
+            layer.push({x: point['x'] + runAmnt, y: point['y'] + riseAmnt});
+            info("Point: " + (point['x'] + runAmnt).toFixed(6) + " " + (point['y'] + riseAmnt).toFixed(6) + " Angle: " + (startAngle + (increment * i)));
+        }
+        
     }
 
     return layer;
