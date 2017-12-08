@@ -1,18 +1,43 @@
 <html>
     <head>
         <link rel="stylesheet" href="styles.css">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">        
+        <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
         <title>Variable Cracking</title>
     </head>
-    <body>
-        <canvas id="theCanvas" width="600" height="400">
-            Please use a browser that supports "canvas"
-        </canvas>
+    <body style="background:gray; color:white;">
+        <table style="width:100%;">
+            <tr>
+                <td style="width:50%">
+                        <canvas id="theCanvas" width="600" height="400">
+                                Please use a browser that supports "canvas"
+                            </canvas>
+                            <br/>
+                            <span id="frameNum">00</span>
+
+                            <br>
+                            <div>
+                                <input type="button" class="btn btn-primary" id="resetImpactVars" value="Reset Impact Vars">
+                            </div>
+                            <div>
+                                <input type="button" class="btn btn-primary" id="resetShape" value="Reset"/>
+                            </div>
+                </td>
+                <td>
+                    <h2>Info</h2>
+                    <div id="infoTable" style="height:400; overflow-y:scroll;">
+                        
+                    </div>
+                </td>
+            </tr>
+        </table>
+
         <br>
-        <br>
-        <div id="instructions">
+        <div id="instructions" style="padding:10px;">
             <strong>Camera controls:</strong>
-            <br>
-            <br>
+
             <div>w, a, s, d - move forward, left, back, right</div>
             <div>r, f - move up, down</div>
             <div>i, j, k, l - look up, left, down, right</div>
@@ -24,8 +49,6 @@
             <br>
 
             <strong>Impact Controls:</strong>
-            <br>
-            <br>
             <div id="impactVars">
                 <div id="impactForceSlider">
                     <label for="impactForceRange">Impact Force: <span id="impactForceVal"></span></label>
@@ -38,12 +61,8 @@
                 </div>
                 <br>
                 <div id="crackRangeSlider">
-                    <label for="crackRangeRange">Crack Range: <span id="crackRangeVal"></span></label>
+                    <label for="crackRangeRange">Shatter Sides: <span id="crackRangeVal"></span></label>
                     <input type="range" min="1" max="20" value="10" class="slider" id="crackRangeRange">
-                </div>
-                <br>
-                <div>
-                    <input type="button" id="resetImpactVars" value="Reset Impact Vars">
                 </div>
             </div>
         </div>
@@ -89,6 +108,13 @@
 
                 crackRangeSlider.value = 10;
                 crackRangeOutput.innerHTML = "10";
+
+                
+            };
+
+            var resetBtn = document.getElementById("resetShape");
+            resetBtn.onclick = function(){
+                reset();
             };
         </script>
 

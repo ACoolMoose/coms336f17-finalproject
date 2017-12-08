@@ -1,37 +1,52 @@
-var height = 2;
+var height = 3;
 var width = 3;
-// var depth = .1;
 width = 0.5 * width;
 height = 0.5 * height;
+
+var objectMaterial = new THREE.MeshPhongMaterial({
+    specular: 0x222222,
+    shininess: 1000,
+    side: THREE.DoubleSide,
+    color: 0x00ffff,
+    opacity: 0.4,
+    transparent: true
+});
+
+var lineMaterial = new THREE.MeshBasicMaterial({color: 0xff0000, wireframe:true, side: THREE.BackSide});
+
 
 var ourCanvas;
 var scene;
 var solidShape;
 var solidShapeShape;
 var fragments = [];
-var drawLines = false;
-var animate = false;
+var leftShape;
+
+var drawLines = false; // TODO boostrap switch
+var animate = true; // TODO boostrap switch
+var experimental = false; // TODO boostrap switch
+// TODO make buttons for everything in handleKeyPress
+// TODO update frame counter under canvas 
 
 var impactPoint;
-var shatterLayerRange = 3;//10
-var shatterShardCountMin = 5;
-var shatterShardCountMax = 5;//10
-var shardWidthMin = 10;
 var fragmentSpeedVariable = .009;
 var fragmentRotationVariable = .005;
 var frameNumber = 0;
 var lastFrame = 0;
 var isBroken = false;
+var frameIncrement = 3;
 
 var camera;
+var infoTable;
 
 function onDocumentMouseClick(event) {
-
+    frameNumber = 0;
     // Get values
     var impactForce = parseInt(document.getElementById("impactForceVal").innerHTML);
     var materialStrength = parseInt(document.getElementById("materialStrengthVal").innerHTML);
     var appendageCount = parseInt(document.getElementById("crackRangeVal").innerHTML);
     var numOfShatterLayers = Math.floor(randomFromInterval(3, 10));
+    
 
     var inWidth = impactPoint.position.x > -width && impactPoint.position.x < width;
     var inHeight = impactPoint.position.y > -height && impactPoint.position.y < height;
@@ -49,46 +64,29 @@ function onDocumentMouseClick(event) {
 
         var shatterDistance = height > width ? height * shatterPercent : width * shatterPercent;
 
-        console.log("Shatter Layers: " + numOfShatterLayers);
+        info("Shatter Distance: " + shatterDistance);
+        info("Shatter Layers: " + numOfShatterLayers);
+
         var shatterLayerDistance = (shatterDistance / numOfShatterLayers);
 
-        var shatterLayers = [];
+        info("Shatter Distance / Layer: " + shatterLayerDistance);
 
+        var shatterLayers = [];
         var startPoint = {'x': impactPoint.position.x, 'y': impactPoint.position.y};
         var startAngle = Math.floor(randomFromInterval(1, 360));
 
+        info("Starting Point: x:" + startPoint['x'].toFixed(6) + " y:" + startPoint['y'].toFixed(6));
+        info("Start Angle: " + startAngle);
+        info("Line Count: " + appendageCount);
+
         // generate layer 1
-        console.log("Data:", startAngle, shatterLayerDistance, appendageCount);
+        info("<b>Layer 1</b>");
         shatterLayers.push(generateLayer(startPoint, startAngle, shatterLayerDistance, appendageCount));
-
-
-
-        // Draw first layer lines
-        if(drawLines){
-            shatterLayers[0].forEach(function(line){
-                var mat = new THREE.LineBasicMaterial({color: 0xff0000});
-                var geo = new THREE.Geometry();
-                geo.vertices.push(
-                    new THREE.Vector3(startPoint['x'], startPoint['y'], .003),
-                    new THREE.Vector3(cW(line['x']), cH(line['y']), .003)
-                );
-                line = new THREE.Line(geo, mat);
-                scene.add(line);
-            });
-        }
         
 
         // generate layer 1 shapes
         var gL = shatterLayers[0].length;
         for(var i = 0; i < gL; ++i){
-            var mat = new THREE.MeshPhongMaterial({
-                color: 0xffffff,
-                specular: 0x222222,
-                shininess: 1000,
-                side: THREE.DoubleSide /*shading: THREE.FlatShading*/
-            });
-            
-
             var shape = new THREE.Shape();
             shape.moveTo(
                 startPoint['x'],
@@ -105,7 +103,7 @@ function onDocumentMouseClick(event) {
                 cH(shatterLayers[0][i + 1 >= gL ? 0 : i + 1]['y']),
                   .1);
     
-            var t_mesh = new THREE.Mesh(new THREE.ShapeGeometry(shape), mat);
+            var t_mesh = new THREE.Mesh(new THREE.ShapeGeometry(shape), drawLines ? lineMaterial : objectMaterial);
         
             scene.add(t_mesh);
             fragments.push(t_mesh);
@@ -114,15 +112,22 @@ function onDocumentMouseClick(event) {
 
         // generate layer n shapes
         for(var i = 1; i <= numOfShatterLayers; ++i){
-            console.log("Generating Layer:", i);
-            shatterLayers.push(generateLayer(startPoint, startAngle, shatterLayerDistance * i, appendageCount))
+            info("<b>Layer: " + (i+1) + "</b>");
+            if(i < numOfShatterLayers){
+                shatterLayers.push(generateLayer(startPoint, startAngle, shatterLayerDistance * i, appendageCount))
+            }else{
+                if(experimental){
+                    shatterLayers.push(generateLayer(startPoint, startAngle, (shatterLayerDistance * i) + randomFromInterval(0,shatterLayerDistance), appendageCount))
+                }else{
+                    shatterLayers.push(generateLayer(startPoint, startAngle, shatterLayerDistance * i, appendageCount))
+                }   
+            }
         }
 
         // create layer n shapes and lines 
         gL = shatterLayers.length - 1;
         // for each layer after first layer
         for(var l = 1; l <= gL; ++l){
-            console.log("Drawing Layer:", l);
             var LL = shatterLayers[l].length;
             for(var i = 0; i < LL; ++i){
                 
@@ -131,42 +136,7 @@ function onDocumentMouseClick(event) {
                 var p3 = shatterLayers[l][i + 1 >= LL ? 0 : i + 1];
                 var p4 = shatterLayers[l -1][i + 1 >= shatterLayers[l -1].length ? 0 : i + 1];
 
-                if(drawLines){
-                    var mat = new THREE.LineBasicMaterial({color: 0xff0000});
-                    var geo = new THREE.Geometry();
-                    geo.vertices.push(
-                        new THREE.Vector3(cW(p1['x']), cH(p1['y']), .003),
-                        new THREE.Vector3(cW(p2['x']), cH(p2['y']), .003)
-                    );
-                    var line = new THREE.Line(geo, mat);
-                    scene.add(line);
-    
-                    var geo = new THREE.Geometry();
-                    geo.vertices.push(
-                        new THREE.Vector3(cW(p3['x']), cH(p3['y']), .003),
-                        new THREE.Vector3(cW(p2['x']), cH(p2['y']), .003)
-                    );
-                    line = new THREE.Line(geo, mat);
-                    scene.add(line);
-    
-                    var geo = new THREE.Geometry();
-                    geo.vertices.push(
-                        new THREE.Vector3(cW(p1['x']), cH(p1['y']), .003),
-                        new THREE.Vector3(cW(p3['x']), cH(p3['y']), .003)
-                    );
-                    var line = new THREE.Line(geo, mat);
-                    scene.add(line);
-                }
-
-                
-                var mat = new THREE.MeshPhongMaterial({
-                    color: 0xffffff,
-                    specular: 0x222222,
-                    shininess: 1000,
-                    side: THREE.DoubleSide /*shading: THREE.FlatShading*/
-                });
                 var shape = new THREE.Shape();
-                
                 shape.moveTo(
                     cW(p1['x']),
                     cH(p1['y']),
@@ -188,79 +158,63 @@ function onDocumentMouseClick(event) {
                     .1);
         
                 try{
-                    var t_mesh = new THREE.Mesh(new THREE.ShapeGeometry(shape), mat);
-                    
+                    var t_mesh = new THREE.Mesh(new THREE.ShapeGeometry(shape), drawLines ? lineMaterial : objectMaterial);
                     scene.add(t_mesh);
                     fragments.push(t_mesh);
                 }catch(err){
                     console.error(err);
                 }
-                
-
             }
         }
 
 
-
-        // generate 'large' ouside pieces
-        console.log("outside");
+        // generate 'large' ouside piece
         var vectors = [];
         shatterLayers[shatterLayers.length-1].forEach(function(point){
             vectors.push(new THREE.Vector3(cW(point['x']),cH(point['y']),.1));
         });
         var path = new THREE.Path(vectors);
-
         scene.remove(solidShape);
-
-        var mat = new THREE.MeshPhongMaterial({
-            color: 0xffffff,
-            specular: 0x222222,
-            shininess: 1000,
-            side: THREE.DoubleSide /*shading: THREE.FlatShading*/
-        });
-
         solidShapeShape.holes.push(path);
-        var holeShape1 = new THREE.Mesh(new THREE.ShapeGeometry(solidShapeShape), mat);
-        
-        scene.add(holeShape1);
-        fragments.push(holeShape1);
+        leftShape = new THREE.Mesh(new THREE.ShapeGeometry(solidShapeShape), objectMaterial);
+        scene.add(leftShape);
 
 
-        // move fragments
-        console.log(fragments);
-
+        // Fragment Movement
         fragments.forEach(function(fragment){
-            var x_sum = 0;
-            var y_sum = 0;
-            fragment.geometry.vertices.forEach(function(vertex){
-                x_sum += vertex.x;
-                y_sum += vertex.y;
-            });
-
-            var x_avg = x_sum / fragment.geometry.vertices.length;
-            var y_avg = y_sum / fragment.geometry.vertices.length;
-            
-            if(drawLines){
-                var dotGeometry = new THREE.Geometry();
-                dotGeometry.vertices.push(new THREE.Vector3( x_avg, y_avg, .01));
-                var dotMaterial = new THREE.PointsMaterial( { size: 2, sizeAttenuation: false, color: 0xff0000 } );
-                var dot = new THREE.Points( dotGeometry, dotMaterial );
-                scene.add( dot );
-            }
-
-            var fragment_center = {x: x_avg, y: y_avg };
-            var distanceFromCenter = pointDistance(startPoint, fragment_center);
-            var angleDeg = to_positive_angle(Math.atan2(y_avg - startPoint['y'], x_avg - startPoint['x']) * 180 / Math.PI);
-            var moveSpinPerc = 1/(1 + Math.pow(distanceFromCenter,2));
-            fragment['moveSpinPerc'] = moveSpinPerc;
-            fragment['spinAngle'] = angleDeg;
+         animateFragment(fragment, startPoint)  
         });
     }
 }
 
+function animateFragment(fragment, startPoint){
+    var x_sum = 0;
+    var y_sum = 0;
+    fragment.geometry.vertices.forEach(function(vertex){
+        x_sum += vertex.x;
+        y_sum += vertex.y;
+    });
+
+    var x_avg = x_sum / fragment.geometry.vertices.length;
+    var y_avg = y_sum / fragment.geometry.vertices.length;
+    
+    if(drawLines){
+        var dotGeometry = new THREE.Geometry();
+        dotGeometry.vertices.push(new THREE.Vector3( x_avg, y_avg, .01));
+        var dot = new THREE.Points( dotGeometry, lineMaterial );
+        scene.add( dot );
+    }
+
+    var fragment_center = {x: x_avg, y: y_avg };
+    var distanceFromCenter = pointDistance(startPoint, fragment_center);
+    var angleDeg = to_positive_angle(Math.atan2(y_avg - startPoint['y'], x_avg - startPoint['x']) * 180 / Math.PI);
+    var moveSpinPerc = 1/(1 + Math.pow(distanceFromCenter,2));
+    fragment['moveSpinPerc'] = moveSpinPerc;
+    fragment['spinAngle'] = angleDeg;
+}
+
 
 function generateLayer(point, startAngle, distance, points){
-    console.log("Generating", points, "points at distance", distance, "starting from angle", startAngle);
     var layer = [];
     var increment = 360/points;
     for(var i = 0; i < points; ++i){
@@ -268,15 +222,10 @@ function generateLayer(point, startAngle, distance, points){
         var riseAmnt = distance * Math.sin(rads);
         var runAmnt = distance * Math.cos(rads);
         layer.push({x: point['x'] + runAmnt, y: point['y'] + riseAmnt});
+        info("Point: " + (point['x'] + runAmnt).toFixed(6) + " " + (point['y'] + riseAmnt).toFixed(6) + " Angle: " + (startAngle + (increment * i)));
     }
 
     return layer;
-}
-
-function withinShape(val){
-    var x = val['x'];
-    var y = val['y'];
-    return x < width && x > -width && y < height && y > -height;
 }
 
 function cW(val){
@@ -298,169 +247,6 @@ function toRadians (angle) {
   return angle * (Math.PI / 180);
 }
 
-function toDegrees (angle) {
-    return angle * (180 / Math.PI);
-  }
-
-function layer1(startPoint, shatterLayerDistance){
-    var shatterShardCount = Math.floor((Math.random() * (shatterShardCountMax-shatterShardCountMin)) + shatterShardCountMin);
-    console.log("Shatter Count:", shatterShardCount - 1); // DISPLAY
-
-    var remainingSpace = 360;
-    var lastWidth = 0;
-    var shardWidthRunningCount = 0;
-    var layer = [];
-    //var first_x = startPoint['x'] + Math.floor(Math.random()*(shatterLayerDistance-(shatterLayerDistance/2)+1)+(shatterLayerDistance/2));
-    var first_x = startPoint['x'] + randomFromInterval(shatterLayerDistance/2, shatterLayerDistance);
-    console.log("Shatter Dist", shatterLayerDistance); // DISPLAY
-    layer.push({'x': first_x > width ? width : first_x, 'y': startPoint['y']});
-
-    for(var sc = 1; sc < shatterShardCount - 1; ++ sc){
-
-      // if last shard, take all remaining space
-      var shardWidth = remainingSpace/(shatterShardCount - sc);
-      if(sc < shatterShardCount - 1){
-        shardWidth = Math.floor(shardWidth + (Math.random() > .5 ? shardWidth * .25 : - shardWidth * .25));
-        remainingSpace -= shardWidth;
-      }
-      
-      if(shardWidth < shardWidthMin){
-          console.log("Skipped");
-          
-      }else{
-        //console.log("Shard:", shardWidth);  // DISPLAY
-        var absolutWidth = shardWidth + lastWidth;
-        
-        var shardLen = (Math.random() * shatterLayerDistance);
-        var riseAmnt = shardLen * Math.sin(toRadians(absolutWidth));
-        var slideAmnt = shardLen * Math.cos(toRadians(absolutWidth));
-
-        //Add point to layer
-        var new_x = startPoint['x'] + slideAmnt;
-        var new_y = startPoint['y'] + riseAmnt;
-        new_x = new_x > width ? width : new_x < -width ? -width : new_x;
-        new_y = new_y > height ? height : new_y < -height ? -height : new_y;
-        layer.push({'x': new_x, 'y': new_y});
-
-        shardWidthRunningCount += shardWidth;
-        lastWidth = lastWidth + shardWidth;
-      }
-
-      
-    }
-    //console.log("Remaining:", remainingSpace); // DISPLAY (last shard)
-
-    return layer;
-}
-
-function layerN(outsidePoints, shatterLayerDistance){
-    var layer = [];
-
-    for(var i = 0; i < outsidePoints.length; i++){
-        var i1 = i;
-        var i2 = i - 1 < 0 ? outsidePoints.length - 1 : i - 1;
-        var i3 = i + 1 === outsidePoints.length ? 0 : i + 1;
-
-        var point = outsidePoints[i1];
-        var right = outsidePoints[i2];
-        var left = outsidePoints[i3];
-
-        console.log(i1, i2, i3);
-
-        var reverseLeft = { x: point['x'] - (left['x'] - point['x']), y: point['y'] - (left['y'] - point['y']) };
-        var reverseRight = { x: point['x'] - (right['x'] - point['x']), y: point['y'] - (right['y'] - point['y']) };
-
-        // Show reverse lines
-        if(true){
-            var mat = new THREE.LineBasicMaterial({color: 0xffffff});
-            var geo = new THREE.Geometry();
-            geo.vertices.push(
-                new THREE.Vector3(point['x'], point['y'], .003),
-                new THREE.Vector3(reverseLeft['x'], reverseLeft['y'], .003)
-            );
-            var line = new THREE.Line(geo, mat);
-            scene.add(line);
-            geo = new THREE.Geometry();
-            geo.vertices.push(
-                new THREE.Vector3(point['x'], point['y'], .003),
-                new THREE.Vector3(reverseRight['x'], reverseRight['y'], .003)
-            );
-            var line = new THREE.Line(geo, mat);
-            scene.add(line);
-        }
-
-        var angleLeft = toDegrees(Math.atan2(left['y'] - point['y'], left['x'] - point['x']));
-        var angleRight = toDegrees(Math.atan2(right['y'] - point['y'], right['x'] - point['x']));
-        var angleReverseLeft = toDegrees(Math.atan2(reverseLeft['y'] - point['y'], reverseLeft['x'] - point['x']));
-        var angleReverseRight = toDegrees(Math.atan2(reverseRight['y'] - point['y'], reverseRight['x'] - point['x']));
-
-        console.log(angleLeft - angleRight);
-
-        if(angleLeft - angleRight > 180){
-            console.log("use reverse");
-        }else{
-            console.log("use normal");
-        }
-
-        console.log(angleLeft, angleRight, angleReverseLeft, angleReverseRight);
-        
-
-
-
-
-        // var angleRadians = Math.atan2(left['y'] - point['y'], left['x'] - point['x']);
-        // var leftAngle = toDegrees(angleRadians);
-        // leftAngle = to_positive_angle(leftAngle);
-        
-        
-        // angleRadians = Math.atan2(right['y'] - point['y'], right['x'] - point['x']);
-        // var rightAngle = toDegrees(angleRadians);
-        // rightAngle = to_positive_angle(rightAngle);
-        
-
-        // leftAngle = getOtherAngle(leftAngle);
-        // rightAngle = getOtherAngle(rightAngle);
-        
-        // console.log("Selecting Between:", leftAngle, rightAngle);
-        
-        // var min = rightAngle > leftAngle ? leftAngle : rightAngle;
-        // var max = rightAngle > leftAngle ? rightAngle : leftAngle;
-
-        // var split = (min + max)/2;
-        // var toAdd = Math.random() * (split * .25);
-
-        // // selected angle to generate new crack
-        // var selected = Math.random() > .5 ? split + toAdd : split - toAdd;
-        // var selectedDistance = randomFromInterval(shatterLayerDistance/2, shatterLayerDistance);
-
-        // console.log("Selected:", selected, "at distance", selectedDistance);
-
-        // var riseAmnt = selectedDistance * Math.sin(toRadians(selected));
-        // var slideAmnt = selectedDistance * Math.cos(toRadians(selected));
-
-        // var new_y = point['y'] + riseAmnt;
-        // var new_x = point['x'] + slideAmnt;
-        // new_x = new_x > width ? width : new_x < -width ? -width : new_x;
-        // new_y = new_y > height ? height : new_y < -height ? -height : new_y;
-
-
-        
-
-        // var mat = new THREE.LineBasicMaterial({color: 0xff0000});
-        // var geo = new THREE.Geometry();
-        // geo.vertices.push(
-        //     new THREE.Vector3(point['x'], point['y'], .003),
-        //     new THREE.Vector3(new_x, new_y, .003)
-        // );
-        // var line = new THREE.Line(geo, mat);
-        // scene.add(line);
-        
-        
-    }
-    
-
-    return layer;
-}
 
 function randomFromInterval(min,max)
 {
@@ -477,14 +263,7 @@ function to_positive_angle(angle)
    return angle;
 }
 
-function getOtherAngle(angle){
-    console.log("Get Other for:", angle);
-    if(angle < 180){
-        return -(180 - angle);
-    }else{
-        return 180 - (360 - angle);
-    }
-}
+
 
 function getChar(event) {
     if (event.which === null) {
@@ -500,15 +279,30 @@ function handleKeyPress(event) {
     var ch = getChar(event);
     if(ch == ']'){
         frameNumber ++;
-        console.log(frameNumber);
     }
     if(ch == '['){
         frameNumber --;
         if(frameNumber < 0){
             frameNumber = 0;
         }
-        console.log(frameNumber);
     }
+
+    if(ch == 'H'){
+        drawLines = !drawLines;
+    }
+
+    if(ch == 'R'){
+        reset();
+    }
+
+    if(ch == 'E'){
+        experimental = !experimental;
+    }
+
+    if(ch == ' '){
+        animate = !animate;
+    }
+
     cameraControl(camera, ch);
 }
 
@@ -537,6 +331,41 @@ function onDocumentMouseMove(event) {
 
 }
 
+function info(string){
+    infoTable.innerHTML += "<br/>"+ string;
+}
+
+function reset(){
+    infoTable = document.getElementById("infoTable");
+    infoTable.innerHTML = "";
+
+    fragments.forEach(function(fragment){
+        scene.remove(fragment);
+    });
+
+    fragments = [];
+    isBroken = false;
+
+    if(solidShape){
+        scene.remove(solidShape);
+    }
+
+    if(leftShape){
+        scene.remove(leftShape);
+    }
+
+    solidShapeShape = new THREE.Shape();
+    solidShapeShape.moveTo(-width, -height);
+    solidShapeShape.lineTo(width, -height);
+    solidShapeShape.lineTo(width, height);
+    solidShapeShape.lineTo(-width, height);
+
+
+    solidShape = new THREE.Mesh(new THREE.ShapeGeometry(solidShapeShape), objectMaterial);
+
+    scene.add(solidShape);
+}
+
 function start() {
 
     window.onkeypress = handleKeyPress;
@@ -551,63 +380,17 @@ function start() {
     ourCanvas = document.getElementById('theCanvas');
     var renderer = new THREE.WebGLRenderer({canvas: ourCanvas});
 
-    // THREE.BackSide
-    // THREE.DoubleSide
-    var material = new THREE.MeshPhongMaterial({
-        color: 0x00ff00,
-        specular: 0x222222,
-        shininess: 1000,
-        side: THREE.DoubleSide /*shading: THREE.FlatShading*/
-    });
+    reset();
 
-
-    solidShapeShape = new THREE.Shape();
-    solidShapeShape.moveTo(-width, -height);
-    solidShapeShape.lineTo(width, -height);
-    solidShapeShape.lineTo(width, height);
-    solidShapeShape.lineTo(-width, height);
-
-
-    solidShape = new THREE.Mesh(new THREE.ShapeGeometry(solidShapeShape), material);
-
-    scene.add(solidShape);
-
-    // Make some axes
-    material = new THREE.LineBasicMaterial({color: 0xff0000});
-    var geometry = new THREE.Geometry();
-    geometry.vertices.push(
-        new THREE.Vector3(0, 0, 0),
-        new THREE.Vector3(2, 0, 0)
-    );
-    var line = new THREE.Line(geometry, material);
-    scene.add(line);
-
-    material = new THREE.LineBasicMaterial({color: 0x00ff00});
-    geometry = new THREE.Geometry();
-    geometry.vertices.push(
-        new THREE.Vector3(0, 0, 0),
-        new THREE.Vector3(0, 2, 0)
-    );
-    line = new THREE.Line(geometry, material);
-    scene.add(line);
-
-    material = new THREE.LineBasicMaterial({color: 0x0000ff});
-    geometry = new THREE.Geometry();
-    geometry.vertices.push(
-        new THREE.Vector3(0, 0, 0),
-        new THREE.Vector3(0, 0, 2)
-    );
-    line = new THREE.Line(geometry, material);
-    scene.add(line);
-
-    material = new THREE.LineBasicMaterial({color: 0xffffff});
-    geometry = new THREE.Geometry();
-    geometry.vertices.push(
+    // Impact point marker line
+    var impactGeo = new THREE.Geometry();
+    impactGeo.vertices.push(
         new THREE.Vector3(0, 0, 2),
         new THREE.Vector3(0, 0, -2)
     );
-    impactPoint = new THREE.Line(geometry, material);
+    impactPoint = new THREE.Line(impactGeo, new THREE.LineBasicMaterial({color: 0xffffff}));
     scene.add(impactPoint);
+
 
     // Put a point light in the scene
     var light = new THREE.PointLight(0xffffff, 1.0);
@@ -617,6 +400,7 @@ function start() {
     // Put in an ambient light
     light = new THREE.AmbientLight(0x555555);
     scene.add(light);
+
 
     var render = function () {
         if(isBroken && lastFrame != frameNumber){
@@ -634,7 +418,7 @@ function start() {
         }
 
         if(animate){
-            frameNumber += 2;
+            frameNumber += frameIncrement;
             if(frameNumber > 1000 && frameNumber < 1500){
                 isBroken = false;
             }
