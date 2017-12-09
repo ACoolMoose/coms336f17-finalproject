@@ -2,6 +2,22 @@
     width: 25%; /* Width of the outside container */
 }
 
+.btn-primary {
+    background-color: #337ab7;
+    border-color: #2e6da4;
+}
+
+.btn-primary:hover {
+    background-color: #286090;
+    border-color: #204d74;
+}
+
+.toggle-off.btn {
+    background-color: #337ab7;
+    border-color: #2e6da4;
+    opacity: .65;
+}
+
 /* The slider itself */
 .slider {
     -webkit-appearance: none;  /* Override default CSS styles */
