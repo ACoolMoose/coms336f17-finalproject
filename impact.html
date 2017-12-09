@@ -46,9 +46,16 @@
                 </label>
                 <label class="checkbox" style="width: 30%; text-align: center;">
                     Experimental
-                    <input id="ExperimentalCheckbox" type="checkbox" checked data-toggle="toggle">
+                    <input id="experimentalCheckbox" type="checkbox" checked data-toggle="toggle">
                 </label>
                 <input type="button" class="btn btn-primary" id="resetShape" value="Reset" style="text-align: right;"/>
+                <!-- Initialize toggles... -->
+                <script>
+                    $('#animateCheckbox').bootstrapToggle();
+                    $('#drawLinesCheckbox').bootstrapToggle();
+                    $('#experimentalCheckbox').bootstrapToggle();
+                </script>
+
             </div>
         </td>
         <td>
