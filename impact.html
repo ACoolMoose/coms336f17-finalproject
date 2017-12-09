@@ -1,127 +1,153 @@
 <html>
-    <head>
-        <link rel="stylesheet" href="styles.css">
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">        
-        <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
-        <title>Variable Cracking</title>
-    </head>
-    <body style="background:gray; color:white;">
-        <table style="width:100%;">
-            <tr>
-                <td style="width:50%">
-                        <canvas id="theCanvas" width="600" height="400">
-                                Please use a browser that supports "canvas"
-                            </canvas>
-                            <br/>
-                            <span id="frameNum">00</span>
+<head>
+    <!-- jQuery first! -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+            integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+            crossorigin="anonymous"></script>
 
-                            <br>
-                            <div>
-                                <input type="button" class="btn btn-primary" id="resetImpactVars" value="Reset Impact Vars">
-                            </div>
-                            <div>
-                                <input type="button" class="btn btn-primary" id="resetShape" value="Reset"/>
-                            </div>
-                </td>
-                <td>
-                    <h2>Info</h2>
-                    <div id="infoTable" style="height:400; overflow-y:scroll;">
-                        
-                    </div>
-                </td>
-            </tr>
-        </table>
+    <!-- Bootstrap Toggle -->
+    <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
+    <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
 
-        <br>
-        <div id="instructions" style="padding:10px;">
-            <strong>Camera controls:</strong>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js"
+            integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh"
+            crossorigin="anonymous"></script>
 
-            <div>w, a, s, d - move forward, left, back, right</div>
-            <div>r, f - move up, down</div>
-            <div>i, j, k, l - look up, left, down, right</div>
-            <div>I, J, K, L - orbit down, right, up, left</div>
-            <div>O - face origin</div>
-            <div>p - put camera at origin</div>
-            <div>W - decrease fov</div>
-            <div>S - increase fov</div>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css"
+          integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
+
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js"
+            integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ"
+            crossorigin="anonymous"></script>
+
+    <link rel="stylesheet" href="styles.css">
+
+    <title>Variable Cracking</title>
+</head>
+<body style="background:gray; color:white;">
+<table style="width:100%;">
+    <tr>
+        <td style="width:50%">
+            <canvas id="theCanvas" width="600" height="400">
+                Please use a browser that supports "canvas"
+            </canvas>
             <br>
-
-            <strong>Impact Controls:</strong>
-            <div id="impactVars">
-                <div id="impactForceSlider">
-                    <label for="impactForceRange">Impact Force: <span id="impactForceVal"></span></label>
-                    <input type="range" min="1" max="200" value="100" class="slider" id="impactForceRange">
-                </div>
-                <br>
-                <div id="materialStrengthSlider">
-                    <label for="materialStrengthRange"> Material Strength: <span id="materialStrengthVal"></span></label>
-                    <input type="range" min="1" max="200" value="100" class="slider" id="materialStrengthRange">
-                </div>
-                <br>
-                <div id="crackRangeSlider">
-                    <label for="crackRangeRange">Shatter Sides: <span id="crackRangeVal"></span></label>
-                    <input type="range" min="1" max="20" value="10" class="slider" id="crackRangeRange">
-                </div>
+            <span id="frameNum">00</span>
+            <br>
+            <br>
+            <div style="width: 600px">
+                <label class="checkbox" style="width: 25%; text-align: center;">
+                    Animate
+                    <input id="animateCheckbox" type="checkbox" checked data-toggle="toggle">
+                </label>
+                <label class="checkbox" style="width: 30%; text-align: center;">
+                    Draw Lines
+                    <input id="drawLinesCheckbox" type="checkbox" checked data-toggle="toggle">
+                </label>
+                <label class="checkbox" style="width: 30%; text-align: center;">
+                    Experimental
+                    <input id="ExperimentalCheckbox" type="checkbox" checked data-toggle="toggle">
+                </label>
+                <input type="button" class="btn btn-primary" id="resetShape" value="Reset" style="text-align: right;"/>
             </div>
+        </td>
+        <td>
+            <h2>Info</h2>
+            <div id="infoTable" style="height:400px; overflow-y:scroll;">
+
+            </div>
+        </td>
+    </tr>
+</table>
+<div id="instructions" style="padding:10px;">
+    <strong>Camera controls:</strong>
+
+    <div>w, a, s, d - move forward, left, back, right</div>
+    <div>r, f - move up, down</div>
+    <div>i, j, k, l - look up, left, down, right</div>
+    <div>I, J, K, L - orbit down, right, up, left</div>
+    <div>O - face origin</div>
+    <div>p - put camera at origin</div>
+    <div>W - decrease fov</div>
+    <div>S - increase fov</div>
+    <br>
+
+    <strong>Impact Variables:</strong>
+    <div id="impactVars">
+        <div id="impactForceSlider">
+            <label for="impactForceRange">Impact Force: <span id="impactForceVal"></span></label>
+            <input type="range" min="1" max="200" value="100" class="slider" id="impactForceRange">
         </div>
+        <br>
+        <div id="materialStrengthSlider">
+            <label for="materialStrengthRange"> Material Strength: <span id="materialStrengthVal"></span></label>
+            <input type="range" min="1" max="200" value="100" class="slider" id="materialStrengthRange">
+        </div>
+        <br>
+        <div id="crackRangeSlider">
+            <label for="crackRangeRange">Shatter Sides: <span id="crackRangeVal"></span></label>
+            <input type="range" min="1" max="20" value="10" class="slider" id="crackRangeRange">
+        </div>
+        <br>
+        <div>
+            <input type="button" class="btn btn-primary" id="resetImpactVars" value="Reset Impact Vars">
+        </div>
+    </div>
+</div>
 
-        <script>
-            //
-            // Update slider values
-            //
-            var impactForceSlider = document.getElementById("impactForceRange");
-            var impactForceOutput = document.getElementById("impactForceVal");
-            impactForceOutput.innerHTML = impactForceSlider.value; // Display the default slider value
+<script>
+    //
+    // Update slider values
+    //
+    var impactForceSlider = document.getElementById("impactForceRange");
+    var impactForceOutput = document.getElementById("impactForceVal");
+    impactForceOutput.innerHTML = impactForceSlider.value.toString(); // Display the default slider value
 
-            // Update the current slider value (each time you drag the slider handle)
-            impactForceSlider.oninput = function() {
-                impactForceOutput.innerHTML = this.value;
-            };
+    // Update the current slider value (each time you drag the slider handle)
+    impactForceSlider.oninput = function () {
+        impactForceOutput.innerHTML = this.value.toString();
+    };
 
-            var materialStrengthSlider = document.getElementById("materialStrengthRange");
-            var materialStrengthOutput = document.getElementById("materialStrengthVal");
-            materialStrengthOutput.innerHTML = materialStrengthSlider.value; // Display the default slider value
+    var materialStrengthSlider = document.getElementById("materialStrengthRange");
+    var materialStrengthOutput = document.getElementById("materialStrengthVal");
+    materialStrengthOutput.innerHTML = materialStrengthSlider.value.toString(); // Display the default slider value
 
-            materialStrengthSlider.oninput = function() {
-                materialStrengthOutput.innerHTML = this.value;
-            };
+    materialStrengthSlider.oninput = function () {
+        materialStrengthOutput.innerHTML = this.value.toString();
+    };
 
-            var crackRangeSlider = document.getElementById("crackRangeRange");
-            var crackRangeOutput = document.getElementById("crackRangeVal");
-            crackRangeOutput.innerHTML = crackRangeSlider.value; // Display the default slider value
+    var crackRangeSlider = document.getElementById("crackRangeRange");
+    var crackRangeOutput = document.getElementById("crackRangeVal");
+    crackRangeOutput.innerHTML = crackRangeSlider.value.toString(); // Display the default slider value
 
-            crackRangeSlider.oninput = function() {
-                crackRangeOutput.innerHTML = this.value;
-            };
+    crackRangeSlider.oninput = function () {
+        crackRangeOutput.innerHTML = this.value.toString();
+    };
 
-            // Reset values
-            var resetButton = document.getElementById("resetImpactVars");
+    // Reset values
+    var resetButton = document.getElementById("resetImpactVars");
 
-            resetButton.onclick = function() {
-                impactForceSlider.value = 100;
-                impactForceOutput.innerHTML = "100";
+    resetButton.onclick = function () {
+        impactForceSlider.value = 100;
+        impactForceOutput.innerHTML = "100";
 
-                materialStrengthSlider.value = 100;
-                materialStrengthOutput.innerHTML = "100";
+        materialStrengthSlider.value = 100;
+        materialStrengthOutput.innerHTML = "100";
 
-                crackRangeSlider.value = 10;
-                crackRangeOutput.innerHTML = "10";
+        crackRangeSlider.value = 10;
+        crackRangeOutput.innerHTML = "10";
+    };
 
-                
-            };
+    var resetBtn = document.getElementById("resetShape");
+    resetBtn.onclick = function () {
+        reset();
+    };
+</script>
 
-            var resetBtn = document.getElementById("resetShape");
-            resetBtn.onclick = function(){
-                reset();
-            };
-        </script>
+<script src="http://threejs.org/build/three.min.js"></script>
 
-        <script src="http://threejs.org/build/three.min.js"></script>
-
-        <script src="CameraControl.js"></script>
-        <script src="impact.js"></script>
-        <script>window.onload = start</script>
-    </body>
+<script src="CameraControl.js"></script>
+<script src="impact.js"></script>
+<script>window.onload = start</script>
+</body>
 </html>
